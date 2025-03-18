@@ -1,64 +1,59 @@
 import '@src/Popup.css';
 import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage } from '@extension/storage';
-import { t } from '@extension/i18n';
-import { ToggleButton } from '@extension/ui';
+import { checkPermission, getLocalStorageContent, parseRecursive, TreeNode } from './storage';
+import React, { useEffect, useState } from 'react';
 
-const notificationOptions = {
-  type: 'basic',
-  iconUrl: chrome.runtime.getURL('icon-34.png'),
-  title: 'Injecting content script error',
-  message: 'You cannot inject script here!',
-} as const;
-
-const Popup = () => {
+const Popup = async () => {
   const theme = useStorage(exampleThemeStorage);
   const isLight = theme === 'light';
-  const logo = isLight ? 'popup/logo_vertical.svg' : 'popup/logo_vertical_dark.svg';
-  const goGithubSite = () =>
-    chrome.tabs.create({ url: 'https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite' });
+  // const logo = isLight ? 'popup/logo_vertical.svg' : 'popup/logo_vertical_dark.svg';
+  const logo = 'popup/icon48.png';
 
-  const injectContentScript = async () => {
-    const [tab] = await chrome.tabs.query({ currentWindow: true, active: true });
+  const [ls, setLs] = useState<TreeNode | undefined>(undefined);
 
-    if (tab.url!.startsWith('about:') || tab.url!.startsWith('chrome:')) {
-      chrome.notifications.create('inject-error', notificationOptions);
-    }
+  useEffect(() => {
+    getLocalStorageContent().then(ls => {
+      if (!ls) {
+        return;
+      }
+      const parsed = parseRecursive(ls, 5);
+      setLs(parsed);
+    });
+  }, [setLs]);
 
-    await chrome.scripting
-      .executeScript({
-        target: { tabId: tab.id! },
-        files: ['/content-runtime/index.iife.js'],
-      })
-      .catch(err => {
-        // Handling errors related to other paths
-        if (err.message.includes('Cannot access a chrome:// URL')) {
-          chrome.notifications.create('inject-error', notificationOptions);
-        }
-      });
-  };
+  console.log(`ls=${JSON.stringify(ls)}`);
+
+  useEffect(() => {
+    console.log('checking permission');
+    checkPermission();
+  });
 
   return (
-    <div className={`App ${isLight ? 'bg-slate-50' : 'bg-gray-800'}`}>
+    <div className={`${isLight ? 'bg-slate-50' : 'bg-gray-800'} p-2`}>
       <header className={`App-header ${isLight ? 'text-gray-900' : 'text-gray-100'}`}>
-        <button onClick={goGithubSite}>
-          <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
-        </button>
-        <p>
-          Edit <code>pages/popup/src/Popup.tsx</code>
-        </p>
-        <button
-          className={
-            'font-bold mt-4 py-1 px-4 rounded shadow hover:scale-105 ' +
-            (isLight ? 'bg-blue-200 text-black' : 'bg-gray-700 text-white')
-          }
-          onClick={injectContentScript}>
-          Click to inject Content Script
-        </button>
-        <ToggleButton>{t('toggleTheme')}</ToggleButton>
+        <div className="flex flex-row items-center gap-2">
+          <img src={chrome.runtime.getURL(logo)} alt="logo" width={32} height={32} />
+          <h2 className="font-bold text-xl">Storage Explorer</h2>
+        </div>
+        <p>Easily view and copy from storage</p>
+        {(ls && <Tree k="root" node={ls} />) || 'none'}
       </header>
     </div>
   );
 };
 
 export default withErrorBoundary(withSuspense(Popup, <div> Loading ... </div>), <div> Error Occur </div>);
+
+const Tree: React.FC<{ k: string; node: TreeNode }> = ({ k, node }) => {
+  return (
+    <div>
+      <p>{k}</p>
+      <ul className="ml-2">
+        {Object.entries(node.children).map(([k, v]) => (
+          <Tree key={k} k={k} node={v} />
+        ))}
+      </ul>
+    </div>
+  );
+};
