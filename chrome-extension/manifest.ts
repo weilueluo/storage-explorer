@@ -30,7 +30,7 @@ const manifest = {
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
   host_permissions: ['<all_urls>'],
-  permissions: ['storage', 'tabs', 'activeTab'],
+  permissions: ['storage', 'scripting', 'tabs', 'activeTab'],
   options_page: 'options/index.html',
   action: {
     default_popup: 'popup/index.html',

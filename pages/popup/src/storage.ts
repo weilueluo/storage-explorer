@@ -54,138 +54,181 @@ export async function checkPermission() {
   if (granted) {
     return true;
   } else {
-    throw new Error(`permission not granted`);
+    alert(`Permission not granted to access this page`);
+    throw new Error(`Permission not granted to access this page`);
   }
 }
 
-export function isObject(obj: any) {
+function isObject(obj: any) {
   return obj && typeof obj === 'object' && !Array.isArray(obj);
 }
 
-export function isArray(obj: any) {
+function isArray(obj: any) {
   return obj && Array.isArray(obj);
 }
 
-export function isString(obj: any) {
+function isString(obj: any) {
+  // @ts-ignore
   return typeof obj === 'string' || typeof obj === 'String';
 }
 
-export function getAsNumber(anything: any) {
-  if (!isString(anything)) {
-    anything = String(anything);
+function isNumber(obj: any) {
+  return typeof obj === 'number';
+}
+
+function isStringNumber(obj: string) {
+  return !isNaN(parseFloat(obj));
+}
+
+function stringToNumber(obj: string) {
+  return parseFloat(obj);
+}
+
+function toNumber(obj: any) {
+  if (typeof obj === 'number') {
+    return obj;
   }
-  return parseInt(anything, 10);
+  return parseFloat(String(obj));
 }
 
-export function parseRecursive(raw: Storage, depth: number): TreeNode {
-  return parseRecursiveInternal(raw, depth, 0);
+export function parseRecursive(raw: unknown, depth: number, searchText: string | undefined): TreeNode {
+  console.log(`parsing depth=${depth}, searchText=${searchText}`);
+  return parseRecursiveInternal(raw, depth, 0, searchText?.toLowerCase(), false);
 }
 
-function parseRecursiveInternal(raw: Storage, max_depth: number, depth: number): TreeNode {
-  let is_object = false;
-  let is_object_tag = false; // node maybe an object but not a object tag, because leaf node (max depth reached) always display full content, even if it is an object
-  let is_array = false;
-  let is_array_tag = false; // similar to above
-  let is_string_tag = false;
+function parseRecursiveInternal(
+  raw: unknown,
+  max_depth: number,
+  depth: number,
+  searchText: string | undefined,
+  parentSearchSatisfied: boolean,
+): TreeNode {
+  let raw_type: ContentType = 'string';
+  let parsed_type: ContentType = 'string';
   let clipboard_value;
-  let display_value;
   let js_value;
 
   if (isObject(raw)) {
     js_value = raw;
     clipboard_value = JSON.stringify(raw);
-    display_value = 'type object';
-    is_object = true;
-    is_object_tag = true;
+    raw_type = 'object';
+    parsed_type = 'object';
   } else if (isArray(raw)) {
     js_value = raw;
     clipboard_value = JSON.stringify(raw);
-    display_value = 'type array';
-    is_array = true;
-    is_array_tag = true;
+    raw_type = 'array';
+    parsed_type = 'array';
+  } else if (isNumber(raw)) {
+    js_value = raw;
+    clipboard_value = String(raw);
+    raw_type = 'number';
+    parsed_type = 'number';
   } else if (isString(raw)) {
     try {
       // handle json string
       js_value = JSON.parse(raw as unknown as string);
       clipboard_value = String(raw);
-      display_value = 'type string';
-      is_string_tag = true;
+      raw_type = 'string';
       if (isObject(js_value)) {
-        is_object = true;
+        parsed_type = 'object';
       } else if (isArray(js_value)) {
-        is_array = true;
+        parsed_type = 'array';
+      } else if (isNumber(js_value)) {
+        parsed_type = 'number';
       } else {
-        // it can be value like: true / false / 1 / null, fk JSON.parse
-        // see also: https://stackoverflow.com/a/33369954/6880256
-        display_value = String(raw);
+        // it can be null
       }
     } catch (err) {
-      // handle normal string
-      display_value = String(raw);
+      // not json parsable
       clipboard_value = String(raw);
-      js_value = raw;
+      if (isStringNumber(clipboard_value)) {
+        js_value = toNumber(clipboard_value);
+        parsed_type = 'number';
+      } else {
+        js_value = raw;
+      }
     }
   } else {
-    display_value = String(raw);
     clipboard_value = String(raw);
     js_value = raw;
   }
 
   // set typical value
-
   const node: TreeNode = {
-    js_value: js_value, // string / object / array
-    display_value: display_value, // string / "object" / "array"
+    javascript_value: js_value, // string / object / array
     clipboard_value: clipboard_value, // string
-    is_leaf: true,
-    is_object: is_object,
-    is_object_tag: is_object_tag,
-    is_array: is_array,
-    is_array_tag: is_array_tag,
-    is_string_tag: is_string_tag,
     children: {}, // key map to node
-    has_parent: depth > 1,
-    depth: depth,
+    meta: {
+      is_leaf: true,
+      raw_type: raw_type,
+      parsed_type: parsed_type,
+      depth: depth,
+      satisfy_search: false,
+      has_parent: depth > 1,
+    },
   };
 
   // set is_leaf
   if (depth < max_depth) {
-    if (node.is_object) {
-      node.is_leaf = false;
-      for (const [k, v] of Object.entries(node.js_value)) {
-        node.children[k] = parseRecursiveInternal(v, max_depth, depth + 1);
+    if (node.meta.parsed_type === 'object') {
+      node.meta.is_leaf = false;
+      for (const [k, v] of Object.entries(node.javascript_value)) {
+        // @ts-ignore: already checked
+        const satisfy_search = parentSearchSatisfied || k?.toLowerCase().includes(searchText);
+        node.children[k] = parseRecursiveInternal(v, max_depth, depth + 1, searchText, satisfy_search);
       }
-    } else if (node.is_array) {
-      node.is_leaf = false;
+    } else if (node.meta.parsed_type === 'array') {
+      node.meta.is_leaf = false;
       // @ts-ignore
-      node.js_value.forEach((value, i) => {
-        node.children[i] = parseRecursiveInternal(value, max_depth, depth + 1);
+      node.javascript_value.forEach((value, i) => {
+        node.children[i] = parseRecursiveInternal(value, max_depth, depth + 1, searchText, parentSearchSatisfied);
       });
     }
   }
 
-  // for leaf node, always display content, not its type information
-  if (node.is_leaf) {
-    node.display_value = node.clipboard_value;
-    node.is_array_tag = false;
-    node.is_object_tag = false;
-    node.is_string_tag = false;
+  // handle search for this node
+  // note we also handle part of the search logic for children below
+  if (parentSearchSatisfied || searchText === undefined || searchText === '') {
+    // if we found search in parent's key, then all its children are also satisfied
+    node.meta.satisfy_search = true;
+  } else if (node.meta.is_leaf || depth >= max_depth) {
+    if (node.clipboard_value?.toLowerCase().includes(searchText)) {
+      node.meta.satisfy_search = true;
+    }
+  } else {
+    // any child satisfy search, then parents are satisfied search
+    for (const child of Object.values(node.children)) {
+      if (child.meta.satisfy_search) {
+        node.meta.satisfy_search = true;
+        break;
+      }
+    }
   }
+
+  // // for leaf node, always display content, not its type information
+  // if (node.meta.is_leaf) {
+  //   node.meta.is_array_raw = false;
+  //   node.meta.is_object_raw = false;
+  //   node.meta.is_string_raw = false;
+  // }
 
   return node;
 }
 
 export interface TreeNode {
-  js_value: string | object | any[];
-  display_value: string;
+  javascript_value: string | object | any[];
   clipboard_value: string;
-  is_leaf: boolean;
-  is_object: boolean;
-  is_object_tag: boolean;
-  is_array: boolean;
-  is_array_tag: boolean;
-  is_string_tag: boolean;
   children: { [key: string | number]: TreeNode };
+  meta: TreeNodeMetadata;
+}
+
+export type ContentType = 'object' | 'array' | 'number' | 'string';
+
+export interface TreeNodeMetadata {
+  is_leaf: boolean;
+  raw_type: ContentType;
+  parsed_type: ContentType;
   has_parent: boolean;
   depth: number;
+  satisfy_search: boolean;
 }

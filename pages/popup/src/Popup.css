@@ -1,0 +1,30 @@
+body {
+    width: 48rem;
+    height: 36rem;
+    max-width: 48rem;
+    max-height: 36rem;
+    padding: 8px;
+}
+
+#app-container {
+    height: 100%;
+    width: 100%;
+}
+
+.inter-tree-node {
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+    font-size: medium;
+}
+
+
+.react-icons {
+    color: black;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+}

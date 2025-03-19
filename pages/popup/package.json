@@ -20,10 +20,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@extension/i18n": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
-    "@extension/i18n": "workspace:*",
-    "@extension/ui": "workspace:*"
+    "@extension/ui": "workspace:*",
+    "react-icons": "^5.5.0",
+    "react-use": "^17.6.0",
+    "tailwind-merge": "^2.4.0"
   },
   "devDependencies": {
     "@extension/tailwindcss-config": "workspace:*",
