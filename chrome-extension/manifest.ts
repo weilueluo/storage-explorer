@@ -20,35 +20,36 @@ const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
 const manifest = {
   manifest_version: 3,
   default_locale: 'en',
-  name: '__MSG_extensionName__',
+  name: 'Storage Explorer',
   browser_specific_settings: {
     gecko: {
-      id: 'example@example.com',
+      id: 'storageexplorer@example.com',
       strict_min_version: '109.0',
     },
   },
   version: packageJson.version,
-  description: '__MSG_extensionDescription__',
-  host_permissions: ['<all_urls>'],
+  description: 'Easily view, copy or search local storage content from any webpage by clicking on the extension icon.',
+  optional_host_permissions: ['https://*/*', 'http://*/*'],
   permissions: ['storage', 'scripting', 'tabs', 'activeTab'],
-  options_page: 'options/index.html',
   action: {
     default_popup: 'popup/index.html',
-    default_icon: 'icon-34.png',
+    default_icon: 'icon32.png',
+    default_title: 'Storage Explorer',
   },
   chrome_url_overrides: {},
   icons: {
-    '128': 'icon-128.png',
+    '48': 'icon48.png',
+    '128': 'icon128.png',
   },
-  content_scripts: [
-    {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
-      css: ['content.css'],
-    },
-  ],
+  // content_scripts: [
+  //   {
+  //     matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+  //     css: ['content.css'],
+  //   },
+  // ],
   web_accessible_resources: [
     {
-      resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],
+      resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon32.png'],
       matches: ['*://*/*'],
     },
   ],

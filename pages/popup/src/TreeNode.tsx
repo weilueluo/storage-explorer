@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { FaAngleRight, FaCaretRight, FaRegCircle } from 'react-icons/fa';
 import { LuBrackets, LuFileText } from 'react-icons/lu';
 import { MdNumbers } from 'react-icons/md';
 import { VscJson } from 'react-icons/vsc';
-import { TreeNode } from './storage';
+import type { TreeNode } from './storage';
 import { m } from './utils';
 
 export const Tree: React.FC<{
@@ -14,9 +15,6 @@ export const Tree: React.FC<{
   doCollapse: number;
   doExpand: number;
 }> = ({ k, node, onSelected, pathIds, doCollapse, doExpand }) => {
-  if (!node.meta.satisfy_search) {
-    return null;
-  }
   const isRoot = k === undefined;
   const isActive = pathIds.has(node.meta.id);
 
@@ -54,13 +52,17 @@ export const Tree: React.FC<{
     }
   }, [doExpand]);
 
+  if (!node.meta.satisfy_search) {
+    return null;
+  }
+
   return (
     <div onMouseOver={() => setIsNodeHovered(true)} onMouseOut={() => setIsNodeHovered(false)}>
       <div>
         {!isRoot && (
           <div
             className={m(
-              'flex flex-row items-center rounded-md',
+              'flex flex-row items-center rounded-sm',
               isNodeHovered && 'bg-slate-200',
               isActive && 'bg-slate-300',
             )}

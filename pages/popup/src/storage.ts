@@ -56,20 +56,20 @@ export async function checkPermission() {
   }
 }
 
-function isObject(obj: any) {
+function isObject(obj: unknown) {
   return obj && typeof obj === 'object' && !Array.isArray(obj);
 }
 
-function isArray(obj: any) {
+function isArray(obj: unknown) {
   return obj && Array.isArray(obj);
 }
 
-function isString(obj: any) {
+function isString(obj: unknown) {
   // @ts-ignore
   return typeof obj === 'string' || typeof obj === 'String';
 }
 
-function isNumber(obj: any) {
+function isNumber(obj: unknown) {
   return typeof obj === 'number';
 }
 
@@ -77,7 +77,7 @@ function isStringNumber(obj: string) {
   return !isNaN(parseFloat(obj));
 }
 
-function toNumber(obj: any) {
+function toNumber(obj: unknown) {
   if (typeof obj === 'number') {
     return obj;
   }
@@ -217,7 +217,7 @@ function parseRecursiveInternal(
       // @ts-ignore
       node.javascript_value.forEach((value, i) => {
         count++;
-        let index = String(i);
+        const index = String(i);
         if (
           !node.meta.satisfy_search &&
           searchText !== undefined &&
