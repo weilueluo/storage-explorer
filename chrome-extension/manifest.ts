@@ -23,7 +23,7 @@ const manifest = {
   name: 'Storage Explorer',
   browser_specific_settings: {
     gecko: {
-      id: 'storageexplorer@example.com',
+      id: 'localstorageexplorer@example.com',
       strict_min_version: '109.0',
     },
   },
