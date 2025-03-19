@@ -1,20 +1,19 @@
 body {
     width: 48rem;
     height: 36rem;
-    max-width: 48rem;
-    max-height: 36rem;
     padding: 8px;
 }
 
 #app-container {
     height: 100%;
     width: 100%;
+    display: flex;
 }
 
 .inter-tree-node {
     font-family: "Inter", sans-serif;
     font-optical-sizing: auto;
-    font-weight: 500;
+    font-weight: 300;
     font-style: normal;
     font-size: medium;
 }
@@ -22,9 +21,14 @@ body {
 
 .react-icons {
     color: black;
+    min-width: 16px;
+    width: 16px;
 }
 
 pre {
-    white-space: pre-wrap;
-    word-break: break-word;
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
