@@ -2,9 +2,11 @@
 
 # Publish
 update version in chrome-extension package.json
+run `pnpm zip` and `pnpm zip:firefox` to create zip ready for publish at `dist-zip` directory
+git add .
+git commit -m "new version"
 git push
 open https://github.com/weilueluo/storage-explorer/releases create new release
-1. run `pnpm zip` and `pnpm zip:firefox` to create zip ready for publish at `dist-zip` directory
 2. open https://chrome.google.com/webstore/devconsole/5e4c2202-6385-4542-9446-bc9611a201b6 in chrome
 3. open storage explorer > packaging > upload new version > select zip file when requested
 4. open https://addons.mozilla.org/en-US/developers/addons

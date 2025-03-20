@@ -10,9 +10,9 @@ import { useDebounce } from 'react-use';
 import type { TreeNode } from './storage';
 import {
   checkPermission,
+  getCurrentOrigin,
   getLocalStorageContent,
   parseRecursive,
-  requestPermission,
   toHumanDate,
   toHumanSize,
 } from './storage';
@@ -252,14 +252,29 @@ const ErrorComponent: React.FC<{
   setErrorMessage: Dispatch<SetStateAction<string | undefined>>;
   refresh: () => void;
 }> = ({ errorMessage, setErrorMessage, refresh }) => {
-  const request = async () => {
-    console.log('requesting permission');
-    await checkPermission().catch(err => {
-      requestPermission()
-        .then(() => setErrorMessage(undefined))
-        .then(() => refresh())
-        .catch(err => setErrorMessage(String(err)));
-    });
+  const [origin, setOrigin] = useState<string>('');
+  useEffect(() => {
+    getCurrentOrigin()
+      .then(origin => {
+        if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
+          throw new Error(`Cannot access non http/https webpage`);
+        }
+        setOrigin(origin);
+      })
+      .catch(err => setErrorMessage(String(err)));
+  }, [setOrigin]);
+
+  const request = () => {
+    try {
+      chrome.permissions.request({
+        permissions: ['scripting'],
+        origins: [origin],
+      }); // chrome does not have second argument callback
+      setErrorMessage(undefined);
+      refresh();
+    } catch (err) {
+      setErrorMessage(String(err));
+    }
   };
 
   if (!errorMessage) {

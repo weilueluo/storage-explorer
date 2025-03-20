@@ -28,7 +28,7 @@ async function getCurrentTab() {
   return tab;
 }
 
-async function getCurrentOrigin() {
+export async function getCurrentOrigin() {
   const tab = await getCurrentTab();
   if (tab.url === undefined) {
     throw new Error(`tab.url is undefined`);
@@ -52,17 +52,6 @@ export async function checkPermission() {
   if (!granted) {
     throw new Error(`Permission not granted to access this page`);
   }
-}
-
-export async function requestPermission() {
-  const origin = await getCurrentOrigin();
-  if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
-    throw new Error(`Cannot access non http/https webpage`);
-  }
-  await chrome.permissions.request({
-    permissions: ['scripting'],
-    origins: [origin],
-  }); // chrome does not have second argument callback
 }
 
 function isObject(obj: unknown) {
