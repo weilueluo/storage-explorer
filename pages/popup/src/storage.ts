@@ -75,6 +75,14 @@ function isStringNumber(obj: string) {
   return !isNaN(parseFloat(obj));
 }
 
+function isBoolean(obj: unknown) {
+  return typeof obj === 'boolean';
+}
+
+function isStringBoolean(obj: string) {
+  return obj === 'true' || obj === 'false';
+}
+
 function toNumber(obj: unknown) {
   if (typeof obj === 'number') {
     return obj;
@@ -138,6 +146,11 @@ function parseRecursiveInternal(
     clipboard_value = String(raw);
     raw_type = 'number';
     parsed_type = 'number';
+  } else if (isBoolean(raw)) {
+    js_value = raw;
+    clipboard_value = String(raw);
+    raw_type = 'boolean';
+    parsed_type = 'boolean';
   } else if (isString(raw)) {
     try {
       // handle json string
@@ -150,6 +163,8 @@ function parseRecursiveInternal(
         parsed_type = 'array';
       } else if (isNumber(js_value)) {
         parsed_type = 'number';
+      } else if (isBoolean(js_value)) {
+        parsed_type = 'boolean';
       } else {
         // it can be null
       }
@@ -272,7 +287,7 @@ export interface TreeNode {
   meta: TreeNodeMetadata;
 }
 
-export type ContentType = 'object' | 'array' | 'number' | 'string';
+export type ContentType = 'object' | 'array' | 'number' | 'string' | 'boolean';
 
 export interface TreeNodeMetadata {
   raw_type: ContentType;
