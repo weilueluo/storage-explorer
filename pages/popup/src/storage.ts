@@ -1,6 +1,6 @@
 export async function getLocalStorageContent() {
   if (chrome.scripting === undefined) {
-    throw new Error(`chrome.scripting is undefined`);
+    throw new Error(`scripting permission for this page is not granted`);
   }
 
   const tab = await getCurrentTab();
@@ -44,16 +44,25 @@ export async function checkPermission() {
   const origin = await getCurrentOrigin();
   // reject all non webpage url
   if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
-    alert(`Cannot access non http/https webpage`);
     throw new Error(`Cannot access non http/https webpage`);
   }
 
   // as long as we get local storage successfully, then we have permissions
   const granted = (await getLocalStorageContent()) !== undefined;
   if (!granted) {
-    alert(`Permission not granted to access this page`);
     throw new Error(`Permission not granted to access this page`);
   }
+}
+
+export async function requestPermission() {
+  const origin = await getCurrentOrigin();
+  if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
+    throw new Error(`Cannot access non http/https webpage`);
+  }
+  await chrome.permissions.request({
+    permissions: ['scripting'],
+    origins: [origin],
+  }); // chrome does not have second argument callback
 }
 
 function isObject(obj: unknown) {

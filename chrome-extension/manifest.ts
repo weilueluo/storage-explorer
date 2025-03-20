@@ -30,7 +30,8 @@ const manifest = {
   version: packageJson.version,
   description: 'Easily view, copy or search local storage content from any webpage by clicking on the extension icon.',
   optional_host_permissions: ['https://*/*', 'http://*/*'],
-  permissions: ['storage', 'scripting', 'tabs', 'activeTab'],
+  permissions: ['storage', 'tabs', 'activeTab'],
+  optional_permissions: ['scripting'],
   action: {
     default_popup: 'popup/index.html',
     default_icon: 'icon32.png',
