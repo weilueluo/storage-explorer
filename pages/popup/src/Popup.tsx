@@ -256,9 +256,6 @@ const ErrorComponent: React.FC<{
   useEffect(() => {
     getCurrentOrigin()
       .then(origin => {
-        if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
-          throw new Error(`Cannot access non http/https webpage`);
-        }
         setOrigin(origin);
       })
       .catch(err => setErrorMessage(String(err)));
@@ -266,12 +263,14 @@ const ErrorComponent: React.FC<{
 
   const request = () => {
     try {
+      if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
+        throw new Error(`Cannot access non http/https webpage`);
+      }
       chrome.permissions.request({
         permissions: ['scripting'],
         origins: [origin],
       }); // chrome does not have second argument callback
-      setErrorMessage(undefined);
-      refresh();
+      setTimeout(() => window.close(), 200); // close the window because it blocks the request permission pop up
     } catch (err) {
       setErrorMessage(String(err));
     }
