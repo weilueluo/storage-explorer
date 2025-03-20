@@ -246,6 +246,16 @@ function parseRecursiveInternal(
           );
           node.meta.satisfy_search = false;
           setSatisfyLater = true;
+        } else {
+          [node.children[index], id] = parseRecursiveInternal(
+            value,
+            max_depth,
+            depth + 1,
+            searchText,
+            node,
+            index,
+            id + 1,
+          );
         }
       });
       node.meta.children_count = count;

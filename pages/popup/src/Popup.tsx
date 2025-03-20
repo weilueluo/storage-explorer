@@ -82,21 +82,7 @@ const Popup = () => {
   const [selectedNode, setSelectedNode] = useState<TreeNode | undefined>(undefined);
   const onSelectNode = useCallback(
     (node: TreeNode) => {
-      if (node === selectedNode) {
-        // user click on the node again after selection, this means they want to unselect it
-        if (node.parent) {
-          if (node.parent.parent) {
-            // check parent is not the root node, root node is a placeholder hidden from the user
-            setSelectedNode(node.parent);
-          } else {
-            setSelectedNode(undefined);
-          }
-        } else {
-          setSelectedNode(undefined);
-        }
-      } else {
-        setSelectedNode(node);
-      }
+      setSelectedNode(node);
     },
     [setSelectedNode, selectedNode],
   );
