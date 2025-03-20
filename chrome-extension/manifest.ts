@@ -24,7 +24,7 @@ const manifest = {
   browser_specific_settings: {
     gecko: {
       id: 'localstorageexplorer@example.com',
-      strict_min_version: '109.0',
+      strict_min_version: '128.0',
     },
   },
   version: packageJson.version,
