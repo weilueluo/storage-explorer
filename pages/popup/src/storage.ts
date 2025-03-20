@@ -1,4 +1,7 @@
-export async function getLocalStorageContent() {
+export type StorageType = 'Local Storage' | 'Session Storage';
+export const STORAGE_TYPES: StorageType[] = ['Local Storage', 'Session Storage'];
+
+export async function getStorageContent(storage: StorageType) {
   if (chrome.scripting === undefined) {
     throw new Error(`scripting permission for this page is not granted`);
   }
@@ -11,9 +14,18 @@ export async function getLocalStorageContent() {
     throw new Error(`tab id is undefined`);
   }
 
+  let getStorageFunc;
+  if (storage === 'Local Storage') {
+    getStorageFunc = () => ({ ...localStorage });
+  } else if (storage === 'Session Storage') {
+    getStorageFunc = () => ({ ...sessionStorage });
+  } else {
+    throw new Error(`Storage not supported: "${storage}"`);
+  }
+
   const execution = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    func: () => ({ ...localStorage }),
+    func: getStorageFunc,
   });
 
   return execution[0].result;
@@ -48,7 +60,7 @@ export async function checkPermission() {
   }
 
   // as long as we get local storage successfully, then we have permissions
-  const granted = (await getLocalStorageContent()) !== undefined;
+  const granted = (await getStorageContent('Local Storage')) !== undefined;
   if (!granted) {
     throw new Error(`Permission not granted to access this page`);
   }

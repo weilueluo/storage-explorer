@@ -4,7 +4,7 @@ import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { IconContext } from 'react-icons';
 import { CgSpinner } from 'react-icons/cg';
-import { FaAngleRight, FaCopy, FaRegCopy, FaSync } from 'react-icons/fa';
+import { FaAngleRight, FaCopy, FaDatabase, FaHdd, FaRegCopy, FaSave, FaSync } from 'react-icons/fa';
 import { FaAnglesDown, FaAnglesUp } from 'react-icons/fa6';
 import { GrCopy } from 'react-icons/gr';
 import { useDebounce } from 'react-use';
@@ -12,8 +12,10 @@ import type { TreeNode } from './storage';
 import {
   checkPermission,
   getCurrentOrigin,
-  getLocalStorageContent,
+  getStorageContent,
   parseRecursive,
+  STORAGE_TYPES,
+  StorageType,
   toHumanDate,
   toHumanSize,
 } from './storage';
@@ -22,6 +24,24 @@ import { m } from './utils';
 
 const Popup = () => {
   const logo = 'popup/icon48.png';
+
+  const [storageType, setStorageType] = useState<StorageType>(STORAGE_TYPES[0]);
+  const nextStorageType = useCallback(() => {
+    let nextIndex = (STORAGE_TYPES.indexOf(storageType) + 1) % STORAGE_TYPES.length;
+    setStorageType(STORAGE_TYPES[nextIndex]);
+  }, [storageType, setStorageType]);
+
+  // origin
+  const [origin, setOrigin] = useState<string>('');
+  useEffect(() => {
+    getCurrentOrigin()
+      .then(origin => {
+        console.log(`origin`);
+        console.log(origin);
+        setOrigin(origin);
+      })
+      .catch(err => setErrorMessage(String(err)));
+  }, [setOrigin]);
 
   // search text logic
   const [searchText, setSearchText] = useState('');
@@ -47,8 +67,7 @@ const Popup = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const refresh = useCallback(() => {
     setLoading(true);
-    // checkPermission().catch(err => setErrorMessage(String(err)));
-    getLocalStorageContent()
+    getStorageContent(storageType)
       .then(storage => {
         setTimestamp(new Date());
         const parsed = parseRecursive(storage, depth, searchTextDebounced);
@@ -62,7 +81,7 @@ const Popup = () => {
         setErrorMessage(undefined);
       })
       .catch(err => setErrorMessage(String(err)));
-  }, [searchTextDebounced, depth, setTreeNode]);
+  }, [searchTextDebounced, depth, setTreeNode, origin, storageType]);
   const clear = useCallback(() => {
     if (searchRef && searchRef.current) {
       searchRef.current.value = '';
@@ -72,7 +91,7 @@ const Popup = () => {
 
   useEffect(() => {
     refresh();
-  }, [searchTextDebounced]);
+  }, [searchTextDebounced, storageType]);
 
   useEffect(() => {
     checkPermission().catch(err => setErrorMessage(String(err)));
@@ -156,6 +175,13 @@ const Popup = () => {
               </a>
               {/* <h2 className="font-bold text-xl">Storage Explorer</h2> */}
             </div>
+            <button
+              className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-2 items-center justify-center"
+              onClick={nextStorageType}>
+              {storageType === 'Local Storage' && <FaHdd />}
+              {storageType === 'Session Storage' && <FaDatabase />}
+              {storageType}
+            </button>
             <input
               className="grow rounded-md px-2 py-1 border border-1 h-[2rem] focus-visible:outline-none focus-visible:border-slate-400"
               onChange={onSearchChange}
@@ -176,12 +202,10 @@ const Popup = () => {
         </header>
 
         {errorMessage && (
-          <ErrorComponent errorMessage={errorMessage} setErrorMessage={setErrorMessage} refresh={refresh} />
+          <ErrorComponent errorMessage={errorMessage} setErrorMessage={setErrorMessage} origin={origin} />
         )}
 
-        {!errorMessage && loading && <LoadingComponent />}
-
-        {!loading && !errorMessage && (
+        {!errorMessage && (
           <>
             <div id="content-container" className="flex flex-row gap-2 grow overflow-hidden">
               <div
@@ -202,8 +226,11 @@ const Popup = () => {
                     Expand All
                   </button>
                 </div>
-                <div id="tree-content-container" className="overflow-y-auto mb-2 rounded-md border-y border-1 flex">
-                  {treeNode && (
+                <div
+                  id="tree-content-container"
+                  className={m('overflow-y-auto mb-2 rounded-md border border-1 flex flex-col', loading && 'grow')}>
+                  {loading && <LoadingComponent />}
+                  {!loading && treeNode && (
                     <Tree
                       k={undefined}
                       node={treeNode}
@@ -258,7 +285,7 @@ const Popup = () => {
                     <>
                       {i > 0 && <FaAngleRight />}
                       <span
-                        className="hover:cursor-pointer min-w-[20px] rounded-sm truncate hover:bg-slate-200"
+                        className="hover:cursor-pointer min-w-[5px] rounded-sm truncate hover:bg-slate-200"
                         onClick={() => onSelectNode(node)}
                         title={node.key}>
                         {node.key}
@@ -283,36 +310,32 @@ export default withErrorBoundary(Popup, <div> Error Occur </div>);
 
 const LoadingComponent: React.FC<{}> = ({}) => {
   return (
-    <span className="flex flex-row gap-2 grow items-center justify-center text-xl">
-      <CgSpinner className="animate-spin" /> loading ...
-    </span>
+    <div className="flex flex-row gap-2 grow items-center justify-center text-xl">
+      <CgSpinner className="animate-spin" />
+      <span>loading ...</span>
+    </div>
   );
+};
+
+const requestScriptingPermission = (origin: string) => {
+  if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
+    throw new Error(`Cannot access non http/https webpage`);
+  }
+  setTimeout(() => window.close(), 200); // close the window because it blocks the request permission pop up
+  chrome.permissions.request({
+    permissions: ['scripting'],
+    origins: [origin],
+  }); // chrome does not have second argument callback
 };
 
 const ErrorComponent: React.FC<{
   errorMessage: string | undefined;
   setErrorMessage: Dispatch<SetStateAction<string | undefined>>;
-  refresh: () => void;
-}> = ({ errorMessage, setErrorMessage, refresh }) => {
-  const [origin, setOrigin] = useState<string>('');
-  useEffect(() => {
-    getCurrentOrigin()
-      .then(origin => {
-        setOrigin(origin);
-      })
-      .catch(err => setErrorMessage(String(err)));
-  }, [setOrigin]);
-
+  origin: string;
+}> = ({ errorMessage, setErrorMessage, origin }) => {
   const request = () => {
     try {
-      if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
-        throw new Error(`Cannot access non http/https webpage`);
-      }
-      setTimeout(() => window.close(), 200); // close the window because it blocks the request permission pop up
-      chrome.permissions.request({
-        permissions: ['scripting'],
-        origins: [origin],
-      }); // chrome does not have second argument callback
+      requestScriptingPermission(origin);
     } catch (err) {
       setErrorMessage(String(err));
     }
