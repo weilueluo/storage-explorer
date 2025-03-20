@@ -1,4 +1,4 @@
-# Local Storage Explorer
+# Storage Explorer
 Easily view, copy or search local storage content from any webpage by clicking on the extension icon. It also supports automatically deserialize json string.
 
 ### Install
