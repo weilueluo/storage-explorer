@@ -32,3 +32,23 @@ pre {
     white-space: -o-pre-wrap;    /* Opera 7 */
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
+
+
+body {
+    /* background-color: #F6F8D5; */
+}
+
+#content-container {
+}
+
+#tree-container, #view-container {
+    /* background-color: #98D2C0; */
+}
+
+#tree-content-container, #view-content-container {
+    /* background-color: #4F959D; */
+}
+
+#footer-container {
+
+}

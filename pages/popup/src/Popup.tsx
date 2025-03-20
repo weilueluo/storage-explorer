@@ -4,8 +4,9 @@ import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { IconContext } from 'react-icons';
 import { CgSpinner } from 'react-icons/cg';
-import { FaAngleRight, FaCopy, FaPaste, FaSync } from 'react-icons/fa';
+import { FaAngleRight, FaCopy, FaRegCopy, FaSync } from 'react-icons/fa';
 import { FaAnglesDown, FaAnglesUp } from 'react-icons/fa6';
+import { GrCopy } from 'react-icons/gr';
 import { useDebounce } from 'react-use';
 import type { TreeNode } from './storage';
 import {
@@ -62,6 +63,12 @@ const Popup = () => {
       })
       .catch(err => setErrorMessage(String(err)));
   }, [searchTextDebounced, depth, setTreeNode]);
+  const clear = useCallback(() => {
+    if (searchRef && searchRef.current) {
+      searchRef.current.value = '';
+      searchRef.current.focus();
+    }
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -73,6 +80,26 @@ const Popup = () => {
 
   // selected node
   const [selectedNode, setSelectedNode] = useState<TreeNode | undefined>(undefined);
+  const onSelectNode = useCallback(
+    (node: TreeNode) => {
+      if (node === selectedNode) {
+        // user click on the node again after selection, this means they want to unselect it
+        if (node.parent) {
+          if (node.parent.parent) {
+            // check parent is not the root node, root node is a placeholder hidden from the user
+            setSelectedNode(node.parent);
+          } else {
+            setSelectedNode(undefined);
+          }
+        } else {
+          setSelectedNode(undefined);
+        }
+      } else {
+        setSelectedNode(node);
+      }
+    },
+    [setSelectedNode, selectedNode],
+  );
 
   // breadcrumb
   const [breadcrumb, setBreadcrumb] = useState<TreeNode[]>([]);
@@ -99,8 +126,12 @@ const Popup = () => {
       navigator.clipboard.writeText(text).catch(err => alert(err));
     }
   };
-  const copyRaw = useCallback(() => copyToClipboard(selectedNode?.clipboard_value), [selectedNode]);
+  const copyRaw = useCallback(() => copyToClipboard(selectedNode && selectedNode.clipboard_value), [selectedNode]);
   const copyParsed = useCallback(
+    () => copyToClipboard(selectedNode && JSON.stringify(selectedNode.javascript_value)),
+    [selectedNode],
+  );
+  const copyPretty = useCallback(
     () => copyToClipboard(selectedNode && JSON.stringify(selectedNode.javascript_value, null, 4)),
     [selectedNode],
   );
@@ -127,97 +158,122 @@ const Popup = () => {
 
   return (
     <IconContext.Provider value={{ className: 'react-icons' }}>
-      <div className={`'bg-slate-50' inter-tree-node flex flex-col gap-2 grow overflow-hidden`}>
-        <header className={m('text-gray-900 h-fit flex flex-col gap-2')}>
-          <div className="flex flex-row items-center gap-2 items-center justify-center">
-            <div className="flex flex-row gap-2">
-              <img src={chrome.runtime.getURL(logo)} alt="logo" width={32} height={32} />
-              <h2 className="font-bold text-xl">Storage Explorer</h2>
-            </div>
-          </div>
-          {/* <p>Easily view and copy from storage</p> */}
+      <div id="all-container" className={`inter-tree-node flex flex-col gap-1 grow overflow-hidden`}>
+        <header id="header-container" className={m('text-gray-900 h-fit flex flex-col gap-2')}>
           <div className="flex flex-row gap-2">
+            <div className="flex flex-row gap-2 items-center">
+              <a
+                href="https://github.com/weilueluo/storage-explorer"
+                target="_blank"
+                className="hover:bg-slate-200 rounded-sm">
+                <img src={chrome.runtime.getURL(logo)} alt="logo" style={{ width: 24, height: 24 }} />
+              </a>
+              {/* <h2 className="font-bold text-xl">Storage Explorer</h2> */}
+            </div>
             <input
-              className="grow rounded-md px-2 py-1 border border-1 h-[2rem] focus-visible:outline-1"
+              className="grow rounded-md px-2 py-1 border border-1 h-[2rem] focus-visible:outline-none focus-visible:border-slate-400"
               onChange={onSearchChange}
               ref={searchRef}
               placeholder="type anything to search..."
             />
             <button
               className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm"
-              onClick={() => refresh()}>
+              onClick={clear}>
+              Clear
+            </button>
+            <button
+              className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm"
+              onClick={refresh}>
               Refresh
             </button>
           </div>
         </header>
 
-        <ErrorComponent errorMessage={errorMessage} setErrorMessage={setErrorMessage} refresh={refresh} />
+        {errorMessage && (
+          <ErrorComponent errorMessage={errorMessage} setErrorMessage={setErrorMessage} refresh={refresh} />
+        )}
 
         {!errorMessage && loading && <LoadingComponent />}
 
         {!loading && !errorMessage && (
           <>
-            <div className="flex flex-row gap-2 grow overflow-hidden">
-              <div className="flex flex-col gap-1 overflow-hidden resize-x min-w-[250px] w-[250px] grow-0 shrink-0">
-                <h3>Tree Explorer</h3>
-                <div className="flex flex-row gap-2">
+            <div id="content-container" className="flex flex-row gap-2 grow overflow-hidden">
+              <div
+                id="tree-container"
+                className="flex flex-col gap-1 overflow-hidden resize-x min-w-[250px] w-[250px] max-w-[500px] grow-0 shrink-0">
+                <h3 className="rounded-sm border-b border-1 text-center">Tree Explorer</h3>
+                <div className="flex flex-row gap-2 justify-around">
                   <button
-                    className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
+                    className="px-2 py-1 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
                     onClick={() => setDoCollapse(doCollapse + 1)}>
                     <FaAnglesUp />
                     Collapse All
                   </button>
                   <button
-                    className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
+                    className="px-2 py-1 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
                     onClick={() => setDoExpand(doExpand + 1)}>
                     <FaAnglesDown />
                     Expand All
                   </button>
                 </div>
-                <div className="overflow-y-auto mb-2 rounded-md border border-1">
-                  {(treeNode && (
+                <div id="tree-content-container" className="overflow-y-auto mb-2 rounded-md border-y border-1 flex">
+                  {treeNode && (
                     <Tree
                       k={undefined}
                       node={treeNode}
-                      onSelected={setSelectedNode}
+                      onSelected={onSelectNode}
                       pathIds={breadcrumbIds}
                       doCollapse={doCollapse}
                       doExpand={doExpand}
                     />
-                  )) || <i>empty</i>}
+                  )}
+                  {treeNode && treeNode.meta.children_count === 0 && (
+                    <i className="text-sm grow flex items-center justify-center">~empty~</i>
+                  )}
                 </div>
               </div>
-              <div className="flex flex-col grow gap-1 overflow-hidden">
-                <h3>Viewer</h3>
-                <div className="flex flex-row gap-2">
+              <div id="view-container" className="flex flex-col grow gap-1 overflow-hidden">
+                <h3 className="rounded-sm border-b border-1 text-center">Viewer</h3>
+                <div className="flex flex-row gap-2 justify-around">
                   <button
-                    className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
-                    onClick={copyRaw}>
+                    className="px-2 py-1 rounded-md hover:bg-slate-200 hover:cursor-pointer border border-1 text-sm flex flex-row gap-1 items-center"
+                    onClick={copyParsed}>
                     <FaCopy />
                     Copy
                   </button>
                   <button
-                    className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
-                    onClick={copyParsed}>
-                    <FaPaste />
+                    className="px-2 py-1 rounded-md hover:bg-slate-200 hover:cursor-pointer border border-1 text-sm flex flex-row gap-1 items-center"
+                    onClick={copyRaw}>
+                    <FaRegCopy />
+                    Copy Raw
+                  </button>
+                  <button
+                    className="px-2 py-1 rounded-md hover:bg-slate-200 hover:cursor-pointer border border-1 text-sm flex flex-row gap-1 items-center"
+                    onClick={copyPretty}>
+                    <GrCopy />
                     Copy Pretty
                   </button>
                 </div>
-                <div className="overflow-auto rounded-md grow border border-1">
+                <div id="view-content-container" className="overflow-auto rounded-md grow border border-1 flex">
                   <pre>{JSON.stringify(selectedNode?.javascript_value, null, 4)}</pre>
+                  {!selectedNode && (
+                    <i className="flex grow items-center justify-center text-sm">
+                      ~please select a node from the tree~
+                    </i>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-row gap-2 rounded-md w-full justify-between h-[1rem]">
-              <div className="flex flex-row gap-1 items-center align-middle text-sm truncate">
+            <div id="footer-container" className="flex flex-row gap-2 rounded-md w-full justify-between h-[1rem]">
+              <div className="flex flex-row items-center align-middle text-sm truncate">
                 {breadcrumb.map((node, i) => {
                   return (
                     <>
                       {i > 0 && <FaAngleRight />}
                       <span
-                        className="hover:cursor-pointer max-w-[100px] rounded-sm truncate hover:bg-slate-200"
-                        onClick={() => setSelectedNode(node)}
+                        className="hover:cursor-pointer min-w-[20px] rounded-sm truncate hover:bg-slate-200"
+                        onClick={() => onSelectNode(node)}
                         title={node.key}>
                         {node.key}
                       </span>
@@ -266,19 +322,15 @@ const ErrorComponent: React.FC<{
       if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
         throw new Error(`Cannot access non http/https webpage`);
       }
+      setTimeout(() => window.close(), 200); // close the window because it blocks the request permission pop up
       chrome.permissions.request({
         permissions: ['scripting'],
         origins: [origin],
       }); // chrome does not have second argument callback
-      setTimeout(() => window.close(), 200); // close the window because it blocks the request permission pop up
     } catch (err) {
       setErrorMessage(String(err));
     }
   };
-
-  if (!errorMessage) {
-    return null;
-  }
 
   return (
     <div className="flex flex-col gap-2 grow justify-center items-center">

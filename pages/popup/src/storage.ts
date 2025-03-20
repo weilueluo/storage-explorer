@@ -176,7 +176,6 @@ function parseRecursiveInternal(
     parent: parent,
     key: key,
     meta: {
-      is_leaf: true,
       raw_type: raw_type,
       parsed_type: parsed_type,
       depth: depth,
@@ -186,11 +185,10 @@ function parseRecursiveInternal(
     },
   };
 
-  // set is_leaf & search
+  // set children count & search
   if (depth < max_depth) {
     let setSatisfyLater = false;
     if (node.meta.parsed_type === 'object') {
-      node.meta.is_leaf = false;
       let count = 0;
       for (const [k, v] of Object.entries(node.javascript_value)) {
         count++;
@@ -210,7 +208,6 @@ function parseRecursiveInternal(
       }
       node.meta.children_count = count;
     } else if (node.meta.parsed_type === 'array') {
-      node.meta.is_leaf = false;
       let count = 0;
       // @ts-ignore
       node.javascript_value.forEach((value, i) => {
@@ -243,20 +240,23 @@ function parseRecursiveInternal(
     }
   }
 
-  // handle search for this node if it does not have any children
   if (!node.meta.satisfy_search) {
-    if (node.meta.is_leaf || depth >= max_depth) {
-      if (searchText !== undefined && searchText !== '' && node.clipboard_value?.toLowerCase().includes(searchText)) {
+    // any child satisfy search, then parents are satisfied search
+    for (const child of Object.values(node.children)) {
+      if (child.meta.satisfy_search) {
         node.meta.satisfy_search = true;
+        break;
       }
-    } else {
-      // any child satisfy search, then parents are satisfied search
-      for (const child of Object.values(node.children)) {
-        if (child.meta.satisfy_search) {
-          node.meta.satisfy_search = true;
-          break;
-        }
-      }
+    }
+  }
+
+  if (!node.meta.satisfy_search) {
+    // we search directly in the clipboard, not just the leaf node's clipboard, this is because:
+    // content: {"id":114183601395907,"view_at":1742377410} => search for 'view_at' or '1742377410' works when we only search in leaf node and key
+    // content: {"id":114183601395907,"view_at":1742377410} => search for '{"id":114183601395907,"view_at":1742377410}' fails if we only search in leaf node, because we effectively search in the key and leaf value separately
+    // this search is expensive tho, we avoid it if we can just search in leaf node, so I put it at the very end
+    if (searchText !== undefined && searchText !== '' && node.clipboard_value?.toLowerCase().includes(searchText)) {
+      node.meta.satisfy_search = true;
     }
   }
 
@@ -275,7 +275,6 @@ export interface TreeNode {
 export type ContentType = 'object' | 'array' | 'number' | 'string';
 
 export interface TreeNodeMetadata {
-  is_leaf: boolean;
   raw_type: ContentType;
   parsed_type: ContentType;
   depth: number;
