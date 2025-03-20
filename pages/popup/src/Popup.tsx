@@ -254,11 +254,12 @@ const ErrorComponent: React.FC<{
 }> = ({ errorMessage, setErrorMessage, refresh }) => {
   const request = async () => {
     console.log('requesting permission');
-    await requestPermission()
-      .then(() => checkPermission())
-      .then(() => setErrorMessage(undefined))
-      .then(() => refresh())
-      .catch(err => setErrorMessage(String(err)));
+    await checkPermission().catch(err => {
+      requestPermission()
+        .then(() => setErrorMessage(undefined))
+        .then(() => refresh())
+        .catch(err => setErrorMessage(String(err)));
+    });
   };
 
   if (!errorMessage) {
