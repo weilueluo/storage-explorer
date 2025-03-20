@@ -1,12 +1,12 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { FaAngleRight, FaCaretRight, FaRegCircle } from 'react-icons/fa';
+import { FaCheck } from 'react-icons/fa6';
 import { LuBrackets, LuFileText } from 'react-icons/lu';
 import { MdNumbers } from 'react-icons/md';
 import { VscJson } from 'react-icons/vsc';
 import type { TreeNode } from './storage';
 import { m } from './utils';
-import { TbCircleLetterB } from 'react-icons/tb';
 
 export const Tree: React.FC<{
   k: string | undefined;
@@ -90,13 +90,13 @@ export const Tree: React.FC<{
             {node.meta.raw_type === 'array' && <LuBrackets style={{ strokeWidth: 2.5, ...slideInStyle }} />}
             {node.meta.raw_type === 'number' && <MdNumbers style={slideInStyle} />}
             {node.meta.raw_type === 'string' && <LuFileText style={slideInStyle} />}
-            {node.meta.raw_type === 'boolean' && <TbCircleLetterB style={slideInStyle} />}
+            {node.meta.raw_type === 'boolean' && <FaCheck style={slideInStyle} />}
             {<FaCaretRight style={slideInStyle} />}
             {node.meta.parsed_type === 'object' && <VscJson style={{ strokeWidth: 1 }} />}
             {node.meta.parsed_type === 'array' && <LuBrackets style={{ strokeWidth: 2.5 }} />}
             {node.meta.parsed_type === 'number' && <MdNumbers />}
             {node.meta.parsed_type === 'string' && <LuFileText />}
-            {node.meta.parsed_type === 'boolean' && <TbCircleLetterB />}
+            {node.meta.parsed_type === 'boolean' && <FaCheck />}
           </div>
         </div>
       )}
