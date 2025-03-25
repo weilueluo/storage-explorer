@@ -235,7 +235,7 @@ function parseRecursiveInternal(
           ['origin', url.origin, false],
           ['pathname', url.pathname, true],
           ['port', url.port, true],
-          ['protocol', url.protocol, true],
+          ['protocol', url.protocol, false],
           ['query', Object.fromEntries(url.searchParams), true],
         ];
         break;
