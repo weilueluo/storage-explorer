@@ -83,23 +83,8 @@ function isNumber(obj: unknown) {
   return typeof obj === 'number';
 }
 
-function isStringNumber(obj: string) {
-  return !isNaN(parseFloat(obj));
-}
-
 function isBoolean(obj: unknown) {
   return typeof obj === 'boolean';
-}
-
-function isStringBoolean(obj: string) {
-  return obj === 'true' || obj === 'false';
-}
-
-function toNumber(obj: unknown) {
-  if (typeof obj === 'number') {
-    return obj;
-  }
-  return parseFloat(String(obj));
 }
 
 export function toHumanSize(kb: number) {
@@ -126,7 +111,7 @@ export function toHumanDate(date: Date) {
 
 export function parseRecursive(raw: unknown, depth: number, searchText: string | undefined): TreeNode {
   console.log(`parsing depth=${depth}, searchText=${searchText}`);
-  return parseRecursiveInternal(raw, depth, 0, searchText?.toLowerCase(), undefined, undefined, 1)[0];
+  return parseRecursiveInternal(raw, depth, 0, searchText?.toLowerCase(), undefined, undefined, 1, true)[0];
 }
 
 function parseRecursiveInternal(
@@ -137,6 +122,7 @@ function parseRecursiveInternal(
   parent: TreeNode | undefined,
   key: string | undefined,
   id: number,
+  tryInterpretString: boolean,
 ): [TreeNode, number] {
   let raw_type: ContentType = 'string';
   let parsed_type: ContentType = 'string';
@@ -164,33 +150,47 @@ function parseRecursiveInternal(
     raw_type = 'boolean';
     parsed_type = 'boolean';
   } else if (isString(raw)) {
-    try {
-      // handle json string
-      js_value = JSON.parse(raw as unknown as string);
-      clipboard_value = String(raw);
-      raw_type = 'string';
-      if (isObject(js_value)) {
-        parsed_type = 'object';
-      } else if (isArray(js_value)) {
-        parsed_type = 'array';
-      } else if (isNumber(js_value)) {
-        parsed_type = 'number';
-      } else if (isBoolean(js_value)) {
-        parsed_type = 'boolean';
-      } else {
-        // it can be null
+    raw_type = 'string';
+    clipboard_value = String(raw);
+    js_value = raw;
+    if (tryInterpretString) {
+      try {
+        // handle json string
+        js_value = JSON.parse(raw as unknown as string);
+        if (isObject(js_value)) {
+          parsed_type = 'object';
+        } else if (isArray(js_value)) {
+          parsed_type = 'array';
+        } else if (isNumber(js_value)) {
+          parsed_type = 'number';
+        } else if (isBoolean(js_value)) {
+          parsed_type = 'boolean';
+        } else {
+          // it can be null
+          parsed_type = 'string';
+        }
+      } catch (err) {
+        // not json parsable
+        raw_type = 'string';
+        parsed_type = 'string';
+        const maybeNumber = parseFloat(clipboard_value);
+        if (!isNaN(maybeNumber)) {
+          js_value = maybeNumber;
+          parsed_type = 'number';
+        } else {
+          const maybeUrl = URL.parse(clipboard_value);
+          if (maybeUrl !== null) {
+            js_value = maybeUrl;
+            parsed_type = 'url';
+          }
+        }
       }
-    } catch (err) {
-      // not json parsable
-      clipboard_value = String(raw);
-      if (isStringNumber(clipboard_value)) {
-        js_value = toNumber(clipboard_value);
-        parsed_type = 'number';
-      } else {
-        js_value = raw;
-      }
+    } else {
+      parsed_type = 'string';
     }
   } else {
+    raw_type = 'string';
+    parsed_type = 'string';
     clipboard_value = String(raw);
     js_value = raw;
   }
@@ -214,66 +214,67 @@ function parseRecursiveInternal(
 
   // set children count & search
   if (depth < max_depth) {
-    let setSatisfyLater = false;
-    if (node.meta.parsed_type === 'object') {
-      let count = 0;
-      for (const [k, v] of Object.entries(node.javascript_value)) {
-        count++;
-        if (
-          !node.meta.satisfy_search &&
-          searchText !== undefined &&
-          searchText !== '' &&
-          k.toLowerCase().includes(searchText)
-        ) {
-          node.meta.satisfy_search = true;
-          [node.children[k], id] = parseRecursiveInternal(v, max_depth, depth + 1, searchText, node, k, id + 1);
-          node.meta.satisfy_search = false;
+    // handles children
+    let key_value_pairs: [string, any, boolean][] | undefined = undefined;
+    switch (node.meta.parsed_type) {
+      case 'object':
+        key_value_pairs = Object.entries(node.javascript_value).map(([k, v]) => [k, v, true]);
+        break;
+      case 'array':
+        key_value_pairs = (node.javascript_value as unknown as any[]).map((value, i) => {
+          return [String(i), value, true];
+        });
+        break;
+      case 'url':
+        const url = node.javascript_value as unknown as URL;
+        key_value_pairs = [
+          ['hash', url.hash, true],
+          ['host', url.host, false], // avoid infinite recusion, because a host is also a valid url
+          ['hostname', url.hostname, false],
+          ['href', url.href, false],
+          ['origin', url.origin, false],
+          ['pathname', url.pathname, true],
+          ['port', url.port, true],
+          ['protocol', url.protocol, true],
+          ['query', Object.fromEntries(url.searchParams), true],
+        ];
+        break;
+    }
+    if (key_value_pairs !== undefined) {
+      // if it has children
+      node.meta.children_count = key_value_pairs.length;
+      let setSatisfyLater = false;
+      for (const [k, v, tryInterpretString] of key_value_pairs) {
+        if (!node.meta.satisfy_search && searchText && k.toLowerCase().includes(searchText)) {
+          node.meta.satisfy_search = true; // hint parent is satisfy for this node
+          [node.children[k], id] = parseRecursiveInternal(
+            v,
+            max_depth,
+            depth + 1,
+            searchText,
+            node,
+            k,
+            id + 1,
+            tryInterpretString,
+          );
+          node.meta.satisfy_search = false; // set it back to false
           setSatisfyLater = true;
         } else {
-          [node.children[k], id] = parseRecursiveInternal(v, max_depth, depth + 1, searchText, node, k, id + 1);
+          [node.children[k], id] = parseRecursiveInternal(
+            v,
+            max_depth,
+            depth + 1,
+            searchText,
+            node,
+            k,
+            id + 1,
+            tryInterpretString,
+          );
         }
       }
-      node.meta.children_count = count;
-    } else if (node.meta.parsed_type === 'array') {
-      let count = 0;
-      // @ts-ignore
-      node.javascript_value.forEach((value, i) => {
-        count++;
-        const index = String(i);
-        if (
-          !node.meta.satisfy_search &&
-          searchText !== undefined &&
-          searchText !== '' &&
-          index.toLowerCase().includes(searchText)
-        ) {
-          node.meta.satisfy_search = true;
-          [node.children[index], id] = parseRecursiveInternal(
-            value,
-            max_depth,
-            depth + 1,
-            searchText,
-            node,
-            index,
-            id + 1,
-          );
-          node.meta.satisfy_search = false;
-          setSatisfyLater = true;
-        } else {
-          [node.children[index], id] = parseRecursiveInternal(
-            value,
-            max_depth,
-            depth + 1,
-            searchText,
-            node,
-            index,
-            id + 1,
-          );
-        }
-      });
-      node.meta.children_count = count;
-    }
-    if (setSatisfyLater) {
-      node.meta.satisfy_search = true;
+      if (setSatisfyLater) {
+        node.meta.satisfy_search = true;
+      }
     }
   }
 
@@ -291,8 +292,8 @@ function parseRecursiveInternal(
     // we search directly in the clipboard, not just the leaf node's clipboard, this is because:
     // content: {"id":114183601395907,"view_at":1742377410} => search for 'view_at' or '1742377410' works when we only search in leaf node and key
     // content: {"id":114183601395907,"view_at":1742377410} => search for '{"id":114183601395907,"view_at":1742377410}' fails if we only search in leaf node, because we effectively search in the key and leaf value separately
-    // this search is expensive tho, we avoid it if we can just search in leaf node, so I put it at the very end
-    if (searchText !== undefined && searchText !== '' && node.clipboard_value?.toLowerCase().includes(searchText)) {
+    // but if we search the raw value then this search will work, but this is expensive tho, we avoid it if we already found something in key or leaf node, so I put it at the very end
+    if (searchText && node.clipboard_value?.toLowerCase().includes(searchText)) {
       node.meta.satisfy_search = true;
     }
   }
@@ -309,7 +310,7 @@ export interface TreeNode {
   meta: TreeNodeMetadata;
 }
 
-export type ContentType = 'object' | 'array' | 'number' | 'string' | 'boolean';
+export type ContentType = 'object' | 'array' | 'number' | 'string' | 'boolean' | 'url';
 
 export interface TreeNodeMetadata {
   raw_type: ContentType;

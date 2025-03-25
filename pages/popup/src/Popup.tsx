@@ -50,7 +50,7 @@ const Popup = () => {
     [setSearchText],
   );
   const [searchTextDebounced, setSearchTextDebounced] = useState('');
-  const [, cancel] = useDebounce(() => setSearchTextDebounced(searchText), 200, [searchText]);
+  const [, cancel] = useDebounce(() => setSearchTextDebounced(searchText), 350, [searchText]);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   // parsed
@@ -141,11 +141,8 @@ const Popup = () => {
     [selectedNode],
   );
 
-  // collapse all
-  const [doCollapse, setDoCollapse] = useState<number>(0);
-
-  // expand all
-  const [doExpand, setDoExpand] = useState<number>(0);
+  // folding status
+  const [globalFolding, setGlobalFolding] = useState<number>(0);
 
   // focus search on start
   const searchRef = useRef<HTMLInputElement>(null);
@@ -215,13 +212,13 @@ const Popup = () => {
                 <div className="flex flex-row gap-2 justify-around">
                   <button
                     className="px-2 py-1 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
-                    onClick={() => setDoCollapse(doCollapse + 1)}>
+                    onClick={() => setGlobalFolding(globalFolding < 0 ? globalFolding - 1 : -1)}>
                     <FaAnglesUp />
                     Collapse All
                   </button>
                   <button
                     className="px-2 py-1 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center"
-                    onClick={() => setDoExpand(doExpand + 1)}>
+                    onClick={() => setGlobalFolding(globalFolding > 0 ? globalFolding + 1 : 1)}>
                     <FaAnglesDown />
                     Expand All
                   </button>
@@ -236,8 +233,7 @@ const Popup = () => {
                       node={treeNode}
                       onSelected={onSelectNode}
                       pathIds={breadcrumbIds}
-                      doCollapse={doCollapse}
-                      doExpand={doExpand}
+                      globalFolding={globalFolding}
                     />
                   )}
                   {treeNode && treeNode.meta.children_count === 0 && (

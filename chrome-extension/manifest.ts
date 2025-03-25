@@ -50,7 +50,7 @@ const manifest = {
   // ],
   web_accessible_resources: [
     {
-      resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon32.png'],
+      resources: ['*.js', '*.css', '*.svg', 'icon128.png', 'icon32.png'],
       matches: ['*://*/*'],
     },
   ],
