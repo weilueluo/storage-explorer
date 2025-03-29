@@ -37,6 +37,7 @@ export const Tree: React.FC<{
   const rotationStyle = {
     // transition: 'transform 0.2s ease-out',
     transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+    transition: 'transform 0.1s ease-out', // Smooth transition
   };
 
   // collapse/expand if instructed

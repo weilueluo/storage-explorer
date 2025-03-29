@@ -150,13 +150,15 @@ function parseRecursiveInternal(
     raw_type = 'boolean';
     parsed_type = 'boolean';
   } else if (isString(raw)) {
-    raw_type = 'string';
-    clipboard_value = String(raw);
+    const raw_string = String(raw);
+    clipboard_value = raw_string;
     js_value = raw;
+    raw_type = 'string';
+    parsed_type = 'string';
     if (tryInterpretString) {
       try {
         // handle json string
-        js_value = JSON.parse(raw as unknown as string);
+        js_value = JSON.parse(raw_string);
         if (isObject(js_value)) {
           parsed_type = 'object';
         } else if (isArray(js_value)) {
@@ -170,23 +172,22 @@ function parseRecursiveInternal(
           parsed_type = 'string';
         }
       } catch (err) {
-        // not json parsable
+        // not json parsable, we try float and url
         raw_type = 'string';
         parsed_type = 'string';
-        const maybeNumber = parseFloat(clipboard_value);
-        if (!isNaN(maybeNumber)) {
+        const maybeNumber = parseFloat(raw_string);
+        if (!isNaN(raw_string as unknown as number) && !isNaN(maybeNumber)) {
+          // https://stackoverflow.com/a/68821383
           js_value = maybeNumber;
           parsed_type = 'number';
         } else {
-          const maybeUrl = URL.parse(clipboard_value);
+          const maybeUrl = URL.parse(raw_string);
           if (maybeUrl !== null) {
             js_value = maybeUrl;
             parsed_type = 'url';
           }
         }
       }
-    } else {
-      parsed_type = 'string';
     }
   } else {
     raw_type = 'string';
@@ -206,7 +207,11 @@ function parseRecursiveInternal(
       raw_type: raw_type,
       parsed_type: parsed_type,
       depth: depth,
-      satisfy_search: (parent && parent.meta.satisfy_search) || searchText === undefined || searchText === '',
+      satisfy_search:
+        (parent && parent.meta.satisfy_search) ||
+        searchText === undefined ||
+        searchText === '' ||
+        (key !== undefined && key.toLowerCase().includes(searchText)),
       id: id,
       children_count: 0, // set later
     },
@@ -241,39 +246,19 @@ function parseRecursiveInternal(
         break;
     }
     if (key_value_pairs !== undefined) {
-      // if it has children
+      // if it has children, we populate children fields
       node.meta.children_count = key_value_pairs.length;
-      let setSatisfyLater = false;
       for (const [k, v, tryInterpretString] of key_value_pairs) {
-        if (!node.meta.satisfy_search && searchText && k.toLowerCase().includes(searchText)) {
-          node.meta.satisfy_search = true; // hint parent is satisfy for this node
-          [node.children[k], id] = parseRecursiveInternal(
-            v,
-            max_depth,
-            depth + 1,
-            searchText,
-            node,
-            k,
-            id + 1,
-            tryInterpretString,
-          );
-          node.meta.satisfy_search = false; // set it back to false
-          setSatisfyLater = true;
-        } else {
-          [node.children[k], id] = parseRecursiveInternal(
-            v,
-            max_depth,
-            depth + 1,
-            searchText,
-            node,
-            k,
-            id + 1,
-            tryInterpretString,
-          );
-        }
-      }
-      if (setSatisfyLater) {
-        node.meta.satisfy_search = true;
+        [node.children[k], id] = parseRecursiveInternal(
+          v,
+          max_depth,
+          depth + 1,
+          searchText,
+          node,
+          k,
+          id + 1,
+          tryInterpretString,
+        );
       }
     }
   }
@@ -290,9 +275,9 @@ function parseRecursiveInternal(
 
   if (!node.meta.satisfy_search) {
     // we search directly in the clipboard, not just the leaf node's clipboard, this is because:
-    // content: {"id":114183601395907,"view_at":1742377410} => search for 'view_at' or '1742377410' works when we only search in leaf node and key
-    // content: {"id":114183601395907,"view_at":1742377410} => search for '{"id":114183601395907,"view_at":1742377410}' fails if we only search in leaf node, because we effectively search in the key and leaf value separately
-    // but if we search the raw value then this search will work, but this is expensive tho, we avoid it if we already found something in key or leaf node, so I put it at the very end
+    // content: {"id":114183601395907,"view_at":1742377410} => search for 'view_at' or '1742377410' works ok, this is because we do search in leaf node and key
+    // content: {"id":114183601395907,"view_at":1742377410} => search for '{"id":114183601395907,"view_at":1742377410}' fails if we only search in leaf node and key, because we break the text into smaller pieces, effectively search in the key and leaf value separately
+    // but if we search the raw value then the search will work, but this is expensive tho, we avoid it if we already found something in key or leaf node, so I put it at the very end
     if (searchText && node.clipboard_value?.toLowerCase().includes(searchText)) {
       node.meta.satisfy_search = true;
     }
