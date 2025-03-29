@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { FaAnglesDown, FaAnglesUp } from 'react-icons/fa6';
 import LoadingComponent from './loading';
-import { TreeNode } from './storage';
 import { Tree } from './TreeNode';
 import { m } from './utils';
 import { useStorageTree } from './context-storage';
 import { useSelectedTree } from './context-selected-node';
 import { useBookmarks } from './context-bookmarks';
+import { Separator } from './Separator';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TreeExplorerProps {}
 
-export const TreeExplorer: React.FC<TreeExplorerProps> = ({}) => {
+export const TreeExplorer: React.FC<TreeExplorerProps> = () => {
   // folding status
   const [globalFolding, setGlobalFolding] = useState<number>(0);
 
@@ -19,7 +21,7 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = ({}) => {
   const { selectedIds, setSelected } = useSelectedTree();
 
   // bookmark
-  const { error: errorFromBookmarks } = useBookmarks();
+  const { bookmarkedNodes, error: errorFromBookmarks } = useBookmarks();
 
   // error
   const [error, setError] = useState<string | undefined>(undefined);
@@ -31,11 +33,13 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = ({}) => {
     }
   }, [errorFromBookmarks, setError]);
 
+  // show bookmark
+
   return (
     <>
       <div
         id="tree-container"
-        className="flex flex-col gap-1 overflow-hidden resize-x min-w-[250px] w-[250px] max-w-[500px] grow-0 shrink-0">
+        className="flex flex-col gap-1 overflow-hidden resize-x min-w-[200px] w-[350px] max-w-[500px] grow-0 shrink-0">
         {/* <h3 className="rounded-sm border-b text-center">Tree Explorer</h3> */}
         <div className="flex flex-row gap-2 justify-around">
           <button
@@ -62,6 +66,22 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = ({}) => {
             </span>
           )}
           {error === undefined && tree === undefined && <LoadingComponent />}
+          {error === undefined && bookmarkedNodes !== undefined && Object.values(bookmarkedNodes).length > 0 && (
+            <div className={m()}>
+              {Object.entries(bookmarkedNodes).map(([name, node]) => {
+                return (
+                  <Tree
+                    k={name}
+                    node={node}
+                    onSelected={setSelected}
+                    pathIds={selectedIds}
+                    globalFolding={globalFolding}
+                  />
+                );
+              })}
+              <Separator />
+            </div>
+          )}
           {error === undefined && tree !== undefined && (
             <Tree
               k={undefined}

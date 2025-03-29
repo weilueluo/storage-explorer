@@ -1,7 +1,8 @@
 import { withErrorBoundary } from '@extension/shared';
 import '@src/Popup.css';
 import type { Dispatch, SetStateAction } from 'react';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { IconContext } from 'react-icons';
 import { FaSync } from 'react-icons/fa';
 import { BookmarkProvider } from './context-bookmarks';

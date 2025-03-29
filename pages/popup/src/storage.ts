@@ -75,8 +75,7 @@ function isArray(obj: unknown) {
 }
 
 function isString(obj: unknown) {
-  // @ts-ignore
-  return typeof obj === 'string' || typeof obj === 'String';
+  return typeof obj === 'string';
 }
 
 function isNumber(obj: unknown) {
@@ -171,7 +170,7 @@ function parseRecursiveInternal(
           // it can be null
           parsed_type = 'string';
         }
-      } catch (err) {
+      } catch {
         // not json parsable, we try float and url
         raw_type = 'string';
         parsed_type = 'string';
@@ -220,17 +219,17 @@ function parseRecursiveInternal(
   // set children count & search
   if (depth < max_depth) {
     // handles children
-    let key_value_pairs: [string, any, boolean][] | undefined = undefined;
+    let key_value_pairs: [string, unknown, boolean][] | undefined = undefined;
     switch (node.meta.parsed_type) {
       case 'object':
         key_value_pairs = Object.entries(node.javascript_value).map(([k, v]) => [k, v, true]);
         break;
       case 'array':
-        key_value_pairs = (node.javascript_value as unknown as any[]).map((value, i) => {
+        key_value_pairs = (node.javascript_value as unknown as unknown[]).map((value, i) => {
           return [String(i), value, true];
         });
         break;
-      case 'url':
+      case 'url': {
         const url = node.javascript_value as unknown as URL;
         key_value_pairs = [
           ['hash', url.hash, true],
@@ -244,6 +243,7 @@ function parseRecursiveInternal(
           ['query', Object.fromEntries(url.searchParams), true],
         ];
         break;
+      }
     }
     if (key_value_pairs !== undefined) {
       // if it has children, we populate children fields
@@ -287,7 +287,7 @@ function parseRecursiveInternal(
 }
 
 export interface TreeNode {
-  javascript_value: string | object | any[];
+  javascript_value: string | object | unknown[];
   clipboard_value: string;
   children: { [key: string | number]: TreeNode };
   parent: TreeNode | undefined;

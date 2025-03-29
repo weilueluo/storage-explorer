@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
 import { FaAngleRight } from 'react-icons/fa';
-import { toHumanDate, toHumanSize, TreeNode } from './storage';
+import { toHumanDate, toHumanSize } from './storage';
 import { useStorageTree } from './context-storage';
 import { useSelectedTree } from './context-selected-node';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface FooterProps {}
 
-export const Footer: React.FC<FooterProps> = ({}) => {
+export const Footer: React.FC<FooterProps> = () => {
   const { stats } = useStorageTree();
   const { selectedPath, setSelected } = useSelectedTree();
 
@@ -20,6 +21,9 @@ export const Footer: React.FC<FooterProps> = ({}) => {
               <span
                 className="hover:cursor-pointer min-w-[10px] max-w-[200px] rounded-sm truncate grow hover:bg-slate-200"
                 onClick={() => setSelected(node)}
+                onKeyDown={() => setSelected(node)}
+                role="button"
+                tabIndex={0}
                 title={node.key}>
                 {node.key}
               </span>

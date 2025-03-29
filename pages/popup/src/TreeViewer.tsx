@@ -1,11 +1,13 @@
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 import { FaCopy, FaRegCopy } from 'react-icons/fa';
 import { useSelectedTree } from './context-selected-node';
 import { m } from './utils';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TreeViewerProps {}
 
-export const TreeViewer: React.FC<TreeViewerProps> = ({}) => {
+export const TreeViewer: React.FC<TreeViewerProps> = () => {
   const [error, setError] = useState<string | undefined>(undefined);
 
   const writeToClipboard = useCallback(

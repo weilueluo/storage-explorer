@@ -1,24 +1,25 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { TreeNode } from './storage';
+import type React from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { TreeNode } from './storage';
 import { varName } from './utils';
 
 export interface SelectedTreeData {
   selectedTree: TreeNode | undefined;
-  setSelected: (tree: TreeNode) => void;
+  setSelected: (tree: TreeNode | undefined) => void;
   selectedPath: TreeNode[];
   selectedIds: Set<number>;
 }
 
 const SelectedTreeContext = createContext<SelectedTreeData>({
   selectedTree: undefined,
-  setSelected: (tree: TreeNode) => {
+  setSelected: () => {
     throw new Error(`${varName(SelectedTreeContext)} not initialized`);
   },
   selectedPath: [],
   selectedIds: new Set(),
 });
 
-export const SelectedTreeProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const SelectedTreeProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [selectedTree, setSelected] = useState<TreeNode | undefined>();
   const [selectedPath, setSelectedPath] = useState<TreeNode[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());

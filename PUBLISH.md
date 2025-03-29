@@ -1,7 +1,7 @@
 
 
 # Publish
-update version in chrome-extension package.json
+run `pnpm update-version 0.12.0`
 run `pnpm zip` and `pnpm zip:firefox` to create zip ready for publish at `dist-zip` directory
 git add .
 git commit -m "new version"

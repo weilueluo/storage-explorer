@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { FaHdd, FaDatabase } from 'react-icons/fa';
-import { StorageType, STORAGE_TYPES } from './storage';
-import { m } from './utils';
+import { STORAGE_TYPES } from './storage';
 import { useDebouncedSearchText } from './hooks';
 import { useStorageTree } from './context-storage';
 import { useStorageType } from './storage-type';
@@ -12,7 +12,7 @@ export const Header: React.FC = () => {
   // rotate storage type
   const { storageType, updateStorageType } = useStorageType();
   const nextStorageType = useCallback(() => {
-    let nextIndex = (STORAGE_TYPES.indexOf(storageType) + 1) % STORAGE_TYPES.length;
+    const nextIndex = (STORAGE_TYPES.indexOf(storageType) + 1) % STORAGE_TYPES.length;
     console.log(`updateing to ${STORAGE_TYPES[nextIndex]}`);
     updateStorageType(STORAGE_TYPES[nextIndex]);
   }, [storageType, updateStorageType]);
@@ -23,9 +23,9 @@ export const Header: React.FC = () => {
   const { reload } = useStorageTree();
   const refresh = useCallback(() => {
     reload(storageType, searchText, 10);
-  }, [storageType, searchText]);
+  }, [reload, storageType, searchText]);
   // refresh on change search and storage type
-  useEffect(() => refresh(), [searchText, storageType]);
+  useEffect(() => refresh(), [refresh, searchText, storageType]);
 
   // focus search on start
   const searchRef = useRef<HTMLInputElement>(null);
@@ -76,6 +76,9 @@ export const Header: React.FC = () => {
         className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm"
         onClick={refresh}>
         Refresh
+      </button>
+      <button className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm">
+        <a href="https://github.com/weilueluo/storage-explorer/issues/new">Feedback</a>
       </button>
     </div>
   );

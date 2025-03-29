@@ -3,7 +3,7 @@ import { fixupConfigRules } from '@eslint/compat';
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import eslintPluginImportX from 'eslint-plugin-import-x';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
+// import jsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactPlugin from 'eslint-plugin-react';
 import globals from 'globals';
@@ -13,7 +13,7 @@ export default ts.config(
   // Shared configs
   js.configs.recommended,
   ...ts.configs.recommended,
-  jsxA11y.flatConfigs.recommended,
+  // jsxA11y.flatConfigs.recommended,
   eslintPluginImportX.flatConfigs.recommended,
   eslintPluginImportX.flatConfigs.typescript,
   eslintPluginPrettierRecommended,

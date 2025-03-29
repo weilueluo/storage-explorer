@@ -1,5 +1,7 @@
-import React, { createContext, FC, Provider, useCallback, useContext, useEffect, useState } from 'react';
-import { TreeNode, StorageType, getStorageContent, parseRecursive, checkPermission } from './storage';
+import type React from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import type { TreeNode, StorageType } from './storage';
+import { getStorageContent, parseRecursive, checkPermission } from './storage';
 
 export interface StorageStats {
   size: number; // kb
@@ -20,7 +22,7 @@ const StorageTreeContext = createContext<UseStorageTree>({
   reload: () => Promise.reject('storage context not initialized'),
 });
 
-export const StorageTreeProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const StorageTreeProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [tree, setTree] = useState<TreeNode | undefined>(undefined);
   const [stats, setStats] = useState<StorageStats | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
