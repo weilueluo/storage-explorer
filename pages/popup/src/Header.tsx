@@ -77,9 +77,13 @@ export const Header: React.FC = () => {
         onClick={refresh}>
         Refresh
       </button>
-      <button className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm">
-        <a href="https://github.com/weilueluo/storage-explorer/issues/new">Feedback</a>
-      </button>
+      <a
+        href="https://github.com/weilueluo/storage-explorer/issues/new"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex items-center">
+        Feedback
+      </a>
     </div>
   );
 };

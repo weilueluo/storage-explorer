@@ -1,0 +1,195 @@
+name: Deploy Extension to Stores
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-chrome:
+    name: Build Chrome Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build Chrome extension
+        run: pnpm build
+
+      - name: Create zip
+        run: pnpm -F zipper zip
+
+      - name: Upload Chrome artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-extension
+          path: dist-zip/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  build-firefox:
+    name: Build Firefox Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build Firefox extension
+        run: pnpm build:firefox
+
+      - name: Create xpi
+        run: pnpm -F zipper zip
+
+      - name: Upload Firefox artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-extension
+          path: dist-zip/*.xpi
+          if-no-files-found: error
+          retention-days: 7
+
+  build-edge:
+    name: Build Edge Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build Edge extension
+        run: pnpm build:edge
+
+      - name: Create zip
+        run: pnpm -F zipper zip
+
+      - name: Rename for Edge
+        run: cd dist-zip && for f in *.zip; do mv "$f" "edge-${f}"; done
+
+      - name: Upload Edge artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-extension
+          path: dist-zip/edge-*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy-chrome:
+    name: Deploy to Chrome Web Store
+    needs: build-chrome
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Chrome artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: chrome-extension
+          path: ./extension
+
+      - name: Get zip file path
+        id: get-zip
+        run: echo "zip_path=$(ls ./extension/*.zip | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Upload to Chrome Web Store
+        uses: mnao305/chrome-extension-upload@v5.0.0
+        with:
+          file-path: ${{ steps.get-zip.outputs.zip_path }}
+          extension-id: ihbcgmgbibicnkinndgpnmphahijahio
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          publish: true
+
+  deploy-firefox:
+    name: Deploy to Firefox Add-ons
+    needs: build-firefox
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Firefox artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firefox-extension
+          path: ./extension
+
+      - name: Get xpi file path
+        id: get-xpi
+        run: echo "xpi_path=$(ls ./extension/*.xpi | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Upload to Firefox Add-ons
+        uses: browser-actions/release-firefox-addon@v0.1.3
+        with:
+          addon-id: localstorageexplorer@example.com
+          addon-path: ${{ steps.get-xpi.outputs.xpi_path }}
+          auth-api-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          auth-api-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
+
+  deploy-edge:
+    name: Deploy to Microsoft Edge Add-ons
+    needs: build-edge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Edge artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: edge-extension
+          path: ./extension
+
+      - name: Get zip file path
+        id: get-zip
+        run: echo "zip_path=$(ls ./extension/*.zip | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Upload to Edge Add-ons
+        uses: wdzeng/edge-addon@v2
+        with:
+          product-id: imaflpaijnmbilkoklcblcjoclgdebng
+          zip-path: ${{ steps.get-zip.outputs.zip_path }}
+          client-id: ${{ secrets.EDGE_CLIENT_ID }}
+          api-key: ${{ secrets.EDGE_API_KEY }}
+
+  upload-release-assets:
+    name: Upload Release Assets
+    needs: [build-chrome, build-firefox, build-edge]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display structure
+        run: ls -R ./artifacts
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/chrome-extension/*.zip
+            ./artifacts/firefox-extension/*.xpi
+            ./artifacts/edge-extension/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
