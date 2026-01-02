@@ -164,7 +164,7 @@ jobs:
       - name: Upload to Edge Add-ons
         uses: wdzeng/edge-addon@v2
         with:
-          product-id: imaflpaijnmbilkoklcblcjoclgdebng
+          product-id: d02c3d9e-6bba-428a-ace7-303705dd14ab
           zip-path: ${{ steps.get-zip.outputs.zip_path }}
           client-id: ${{ secrets.EDGE_CLIENT_ID }}
           api-key: ${{ secrets.EDGE_API_KEY }}
