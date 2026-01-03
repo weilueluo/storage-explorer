@@ -145,7 +145,7 @@ jobs:
           addon-path: ${{ steps.get-xpi.outputs.xpi_path }}
           auth-api-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
           auth-api-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
-          release-notes: "Bug fixes and improvements"
+          release-note: "Bug fixes and improvements"
 
   deploy-edge:
     name: Deploy to Microsoft Edge Add-ons
