@@ -24,13 +24,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@extension/storage": "workspace:*",
     "@extension/shared": "workspace:*",
+    "@extension/storage": "workspace:*",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.4.0"
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "tsc-alias": "^1.8.10"
+    "tsc-alias": "^1.8.16"
   }
 }
