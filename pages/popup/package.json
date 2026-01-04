@@ -17,7 +17,9 @@
     "lint": "eslint .",
     "lint:fix": "pnpm lint --fix",
     "prettier": "prettier . --write --ignore-path ../../.prettierignore",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@extension/i18n": "workspace:*",
@@ -31,6 +33,7 @@
   },
   "devDependencies": {
     "@extension/tailwindcss-config": "workspace:*",
+    "@extension/test-utils": "workspace:*",
     "@extension/tsconfig": "workspace:*",
     "@extension/vite-config": "workspace:*"
   },

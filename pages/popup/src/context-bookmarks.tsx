@@ -2,6 +2,7 @@ import { createStorage } from '@extension/storage/lib/base';
 import type React from 'react';
 import type { PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { getPathFromLeaf, getRecursive } from './bookmark-utils';
 import { useStorageTree } from './context-storage';
 import type { TreeNode } from './storage';
 import { getCurrentOrigin } from './storage';
@@ -93,17 +94,6 @@ export const BookmarkProvider: React.FC<PropsWithChildren> = ({ children }) => {
     [setBookmarks, setError],
   );
 
-  const getPathFromLeaf = (tree: TreeNode) => {
-    const path = [];
-    let head = tree;
-    while (head !== undefined && head.parent !== undefined) {
-      // skip root
-      path.push(head);
-      head = head.parent;
-    }
-    return path.reverse();
-  };
-
   const setBookmark = useCallback(
     async (name: string, tree: TreeNode | undefined) => {
       if (tree === undefined) {
@@ -147,30 +137,6 @@ export const BookmarkProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
   // on change tree/bookmark, search and update bookmarked nodes
   useEffect(() => {
-    const getRecursive = (tree: TreeNode, path: string[]): TreeNode | undefined => {
-      if (path.length === 0) {
-        return tree;
-      } else {
-        console.log(`path[0] === tree.key, ${path[0]} === ${tree.key} => ${path[0] === tree.key}`);
-        if (path[0] === tree.key) {
-          const childPath = path.slice(1);
-          console.log(`childPath=${childPath.length === 0}`);
-          if (childPath.length === 0) {
-            return tree;
-          }
-          if (tree.children) {
-            for (const child of Object.values(tree.children)) {
-              const node = getRecursive(child, childPath);
-              if (node !== undefined) {
-                return node;
-              }
-            }
-          }
-        }
-      }
-      return undefined;
-    };
-
     if (bookmarks !== undefined && tree !== undefined) {
       const bookmarkedNodes: { [name: string]: TreeNode | undefined } = {};
       for (const [name, path] of Object.entries(bookmarks)) {

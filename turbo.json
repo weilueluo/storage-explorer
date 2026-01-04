@@ -24,6 +24,16 @@
     "e2e": {
       "cache": false
     },
+    "test": {
+      "dependsOn": ["^ready"],
+      "outputs": ["coverage/**"],
+      "cache": false
+    },
+    "test:coverage": {
+      "dependsOn": ["^ready"],
+      "outputs": ["coverage/**"],
+      "cache": false
+    },
     "type-check": {
       "cache": false
     },

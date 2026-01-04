@@ -66,23 +66,23 @@ export async function checkPermission() {
   }
 }
 
-function isObject(obj: unknown) {
+export function isObject(obj: unknown) {
   return obj && typeof obj === 'object' && !Array.isArray(obj);
 }
 
-function isArray(obj: unknown) {
+export function isArray(obj: unknown) {
   return obj && Array.isArray(obj);
 }
 
-function isString(obj: unknown) {
+export function isString(obj: unknown) {
   return typeof obj === 'string';
 }
 
-function isNumber(obj: unknown) {
+export function isNumber(obj: unknown) {
   return typeof obj === 'number';
 }
 
-function isBoolean(obj: unknown) {
+export function isBoolean(obj: unknown) {
   return typeof obj === 'boolean';
 }
 

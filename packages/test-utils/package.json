@@ -1,7 +1,7 @@
 {
-  "name": "@extension/dev-utils",
+  "name": "@extension/test-utils",
   "version": "0.12.5",
-  "description": "chrome extension - dev utils",
+  "description": "chrome extension - test utilities",
   "type": "module",
   "private": true,
   "sideEffects": false,
@@ -15,15 +15,12 @@
     "clean:node_modules": "pnpx rimraf node_modules",
     "clean:turbo": "rimraf .turbo",
     "clean": "pnpm clean:bundle && pnpm clean:node_modules && pnpm clean:turbo",
-    "ready": "tsc -b",
-    "lint": "eslint .",
-    "lint:fix": "pnpm lint --fix",
-    "prettier": "prettier . --write --ignore-path ../../.prettierignore",
-    "type-check": "tsc --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "ready": "tsc -b"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"
+  },
+  "peerDependencies": {
+    "vitest": "^2.1.0"
   }
 }
