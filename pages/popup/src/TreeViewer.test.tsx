@@ -121,4 +121,25 @@ describe('TreeViewer', () => {
       expect(screen.getByText(/"foo"/)).toBeInTheDocument();
     });
   });
+
+  describe('Toast Feedback', () => {
+    it('shows toast after successful copy', async () => {
+      const mockTree = createMockTreeNode({ key: 'my-key' });
+      const user = userEvent.setup();
+
+      render(<TreeViewer />, { wrapper: createTestWrapper(mockTree) });
+
+      await waitFor(() => {
+        expect(screen.queryByText('~please select a node from the tree~')).not.toBeInTheDocument();
+      });
+
+      const copyKeyButton = screen.getByText('Copy Key');
+      await user.click(copyKeyButton);
+
+      await waitFor(() => {
+        expect(screen.getByRole('status')).toHaveClass('opacity-100');
+      });
+      expect(screen.getByText('Copied!')).toBeInTheDocument();
+    });
+  });
 });
