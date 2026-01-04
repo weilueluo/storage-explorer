@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderWithProviders, screen, userEvent, waitFor } from './test/test-utils';
 import { Header } from './Header';
 

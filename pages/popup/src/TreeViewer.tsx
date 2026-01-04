@@ -21,9 +21,12 @@ export const TreeViewer: React.FC<TreeViewerProps> = () => {
 
   const { selectedTree: tree } = useSelectedTree();
 
-  const copyKey = useCallback(() => writeToClipboard(tree?.key), [tree]);
-  const copyRaw = useCallback(() => writeToClipboard(tree?.clipboard_value), [tree]);
-  const copyParsed = useCallback(() => writeToClipboard(tree && JSON.stringify(tree?.javascript_value)), [tree]);
+  const copyKey = useCallback(() => writeToClipboard(tree?.key), [tree, writeToClipboard]);
+  const copyRaw = useCallback(() => writeToClipboard(tree?.clipboard_value), [tree, writeToClipboard]);
+  const copyParsed = useCallback(
+    () => writeToClipboard(tree && JSON.stringify(tree?.javascript_value)),
+    [tree, writeToClipboard],
+  );
 
   return (
     <div id="view-container" className="flex flex-col grow gap-1 overflow-hidden">

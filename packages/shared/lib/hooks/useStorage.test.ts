@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Test the wrapPromise utility function
 // Note: We need to re-implement wrapPromise here for testing since it's not exported

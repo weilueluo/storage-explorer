@@ -22,7 +22,7 @@ describe('ManifestParserImpl', () => {
       };
       const result = ManifestParserImpl.convertManifestToString(manifest, false);
       expect(result).toContain('\n');
-      expect(result).toMatch(/  "manifest_version"/);
+      expect(result).toMatch(/ {2}"manifest_version"/);
     });
 
     it('should not modify manifest for Chrome', () => {

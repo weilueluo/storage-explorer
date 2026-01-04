@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { StorageEnum, SessionAccessLevelEnum } from './enums.js';
+import { StorageEnum } from './enums.js';
 
 // We need to import createStorage dynamically after setting up mocks
 // because the module captures globalThis.chrome at import time

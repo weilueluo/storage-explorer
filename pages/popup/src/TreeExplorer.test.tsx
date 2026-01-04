@@ -1,13 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import {
-  render,
-  screen,
-  userEvent,
-  waitFor,
-  renderWithProviders,
-  createNestedMockTree,
-  createMockTreeNode,
-} from './test/test-utils';
+import { screen, userEvent, waitFor, renderWithProviders, createNestedMockTree } from './test/test-utils';
 import { TreeExplorer } from './TreeExplorer';
 
 // Mock the context hooks to control test state

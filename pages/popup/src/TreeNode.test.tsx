@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, userEvent, waitFor } from './test/test-utils';
+import { render, screen, userEvent, waitFor, createMockTreeNode, createNestedMockTree } from './test/test-utils';
 import { Tree } from './TreeNode';
-import { createMockTreeNode, createNestedMockTree } from './test/test-utils';
 import { BookmarkProvider } from './context-bookmarks';
 import type { ReactNode } from 'react';
 import { IconContext } from 'react-icons';

@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import React, { type ReactNode } from 'react';
-import { render, screen, userEvent, waitFor } from './test/test-utils';
+import { render, screen, userEvent, waitFor, createMockTreeNode } from './test/test-utils';
 import { TreeViewer } from './TreeViewer';
 import { SelectedTreeProvider, useSelectedTree } from './context-selected-node';
-import { createMockTreeNode } from './test/test-utils';
 
 // Wrapper that allows us to set initial selected tree
 function createTestWrapper(selectedTree?: ReturnType<typeof createMockTreeNode>) {
