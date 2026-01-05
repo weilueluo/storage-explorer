@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react';
 import { useCallback, useState } from 'react';
-import { useDebounce, useTimeoutFn } from 'react-use';
+import { useDebounce } from 'react-use';
+import { useToastContext } from './context-toast';
 import { getCurrentOrigin } from './storage';
 
 export interface UseOrigin {
@@ -41,27 +42,10 @@ export function useDebouncedSearchText() {
 }
 
 export interface UseToast {
-  isVisible: boolean;
-  message: string;
   showToast: (msg: string) => void;
 }
 
-export function useToast(duration: number = 1500): UseToast {
-  const [isVisible, setIsVisible] = useState(false);
-  const [message, setMessage] = useState('');
-
-  const [, , reset] = useTimeoutFn(() => {
-    setIsVisible(false);
-  }, duration);
-
-  const showToast = useCallback(
-    (msg: string) => {
-      setMessage(msg);
-      setIsVisible(true);
-      reset();
-    },
-    [reset],
-  );
-
-  return { isVisible, message, showToast };
+export function useToast(): UseToast {
+  const { showToast } = useToastContext();
+  return { showToast };
 }

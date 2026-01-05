@@ -3,7 +3,6 @@ import { useCallback, useState } from 'react';
 import { FaCopy, FaRegCopy } from 'react-icons/fa';
 import { useSelectedTree } from './context-selected-node';
 import { useToast } from './hooks';
-import { Toast } from './Toast';
 import { m } from './utils';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -11,7 +10,7 @@ export interface TreeViewerProps {}
 
 export const TreeViewer: React.FC<TreeViewerProps> = () => {
   const [error, setError] = useState<string | undefined>(undefined);
-  const { isVisible, message, showToast } = useToast();
+  const { showToast } = useToast();
 
   const writeToClipboard = useCallback(
     (text: string | undefined) => {
@@ -77,7 +76,6 @@ export const TreeViewer: React.FC<TreeViewerProps> = () => {
           </span>
         )}
       </div>
-      <Toast isVisible={isVisible} message={message} />
     </div>
   );
 };

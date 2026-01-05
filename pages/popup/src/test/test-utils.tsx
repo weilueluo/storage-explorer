@@ -5,6 +5,7 @@ import { StorageTreeProvider } from '../context-storage';
 import { SelectedTreeProvider } from '../context-selected-node';
 import { StorageTypeProvider } from '../storage-type';
 import { BookmarkProvider } from '../context-bookmarks';
+import { ToastProvider } from '../context-toast';
 import type { TreeNode } from '../storage';
 
 // Re-export everything from testing-library
@@ -20,13 +21,15 @@ export interface WrapperProps {
 export function AllProviders({ children }: WrapperProps): ReactElement {
   return (
     <IconContext.Provider value={{ className: 'react-icons' }}>
-      <StorageTreeProvider>
-        <SelectedTreeProvider>
-          <StorageTypeProvider>
-            <BookmarkProvider>{children}</BookmarkProvider>
-          </StorageTypeProvider>
-        </SelectedTreeProvider>
-      </StorageTreeProvider>
+      <ToastProvider>
+        <StorageTreeProvider>
+          <SelectedTreeProvider>
+            <StorageTypeProvider>
+              <BookmarkProvider>{children}</BookmarkProvider>
+            </StorageTypeProvider>
+          </SelectedTreeProvider>
+        </StorageTreeProvider>
+      </ToastProvider>
     </IconContext.Provider>
   );
 }

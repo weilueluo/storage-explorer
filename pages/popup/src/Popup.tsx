@@ -8,10 +8,12 @@ import { FaSync } from 'react-icons/fa';
 import { BookmarkProvider } from './context-bookmarks';
 import { SelectedTreeProvider } from './context-selected-node';
 import { StorageTreeProvider, useStorageTree } from './context-storage';
+import { ToastProvider } from './context-toast';
 import { Footer } from './Footer';
 import { Header } from './Header';
 import { useOrigin } from './hooks';
 import { StorageTypeProvider, useStorageType } from './storage-type';
+import { ToastContainer } from './ToastContainer';
 import { TreeExplorer } from './TreeExplorer';
 import { TreeViewer } from './TreeViewer';
 import { m } from './utils';
@@ -19,15 +21,18 @@ import { m } from './utils';
 const Popup: React.FC = () => {
   return (
     <IconContext.Provider value={{ className: 'react-icons' }}>
-      <StorageTreeProvider>
-        <SelectedTreeProvider>
-          <StorageTypeProvider>
-            <BookmarkProvider>
-              <PopupContent />
-            </BookmarkProvider>
-          </StorageTypeProvider>
-        </SelectedTreeProvider>
-      </StorageTreeProvider>
+      <ToastProvider>
+        <StorageTreeProvider>
+          <SelectedTreeProvider>
+            <StorageTypeProvider>
+              <BookmarkProvider>
+                <PopupContent />
+                <ToastContainer />
+              </BookmarkProvider>
+            </StorageTypeProvider>
+          </SelectedTreeProvider>
+        </StorageTreeProvider>
+      </ToastProvider>
     </IconContext.Provider>
   );
 };

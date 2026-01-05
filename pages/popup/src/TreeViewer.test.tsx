@@ -3,14 +3,19 @@ import React, { type ReactNode } from 'react';
 import { render, screen, userEvent, waitFor, createMockTreeNode } from './test/test-utils';
 import { TreeViewer } from './TreeViewer';
 import { SelectedTreeProvider, useSelectedTree } from './context-selected-node';
+import { ToastProvider } from './context-toast';
+import { ToastContainer } from './ToastContainer';
 
 // Wrapper that allows us to set initial selected tree
 function createTestWrapper(selectedTree?: ReturnType<typeof createMockTreeNode>) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <SelectedTreeProvider>
-        {selectedTree ? <SelectedTreeSetter tree={selectedTree}>{children}</SelectedTreeSetter> : children}
-      </SelectedTreeProvider>
+      <ToastProvider>
+        <SelectedTreeProvider>
+          {selectedTree ? <SelectedTreeSetter tree={selectedTree}>{children}</SelectedTreeSetter> : children}
+        </SelectedTreeProvider>
+        <ToastContainer />
+      </ToastProvider>
     );
   };
 }
@@ -137,7 +142,7 @@ describe('TreeViewer', () => {
       await user.click(copyKeyButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('status')).toHaveClass('opacity-100');
+        expect(screen.getByRole('status')).toHaveStyle({ opacity: '1' });
       });
       expect(screen.getByText('Copied!')).toBeInTheDocument();
     });
