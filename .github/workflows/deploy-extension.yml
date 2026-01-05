@@ -113,7 +113,51 @@ jobs:
         id: get-zip
         run: echo "zip_path=$(ls ./extension/*.zip | head -1)" >> $GITHUB_OUTPUT
 
+      - name: Get Chrome Web Store access token
+        id: get-token
+        run: |
+          # Get access token using refresh token
+          TOKEN_RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
+            -d "client_id=${{ secrets.CHROME_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.CHROME_CLIENT_SECRET }}" \
+            -d "refresh_token=${{ secrets.CHROME_REFRESH_TOKEN }}" \
+            -d "grant_type=refresh_token")
+
+          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Check Chrome Web Store item status
+        id: check-status
+        run: |
+          # Pre-flight check: Query item status before attempting upload.
+          # The Chrome Web Store disables uploads when an item is pending review,
+          # ready to publish, or deleted. Rather than failing the workflow when
+          # this happens, we detect it early and skip the upload gracefully.
+          # This results in a warning (yellow status) instead of a failure (red).
+
+          EXTENSION_ID="ihbcgmgbibicnkinndgpnmphahijahio"
+
+          STATUS_RESPONSE=$(curl -s -X GET \
+            "https://chromewebstore.googleapis.com/v2/publishers/me/items/$EXTENSION_ID:fetchStatus" \
+            -H "Authorization: Bearer ${{ steps.get-token.outputs.token }}")
+
+          echo "Status response:"
+          echo "$STATUS_RESPONSE" | jq .
+
+          # Check if item has a submitted revision pending review
+          SUBMITTED_STATE=$(echo "$STATUS_RESPONSE" | jq -r '.submittedItemRevisionStatus.itemState // empty')
+
+          if [ "$SUBMITTED_STATE" = "PENDING_REVIEW" ]; then
+            echo "::warning::Chrome Web Store item is currently pending review. Skipping upload."
+            echo "skip_upload=true" >> $GITHUB_OUTPUT
+          else
+            echo "Item is updatable, proceeding with upload."
+            echo "skip_upload=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload to Chrome Web Store
+        if: steps.check-status.outputs.skip_upload != 'true'
         uses: mnao305/chrome-extension-upload@v5.0.0
         with:
           file-path: ${{ steps.get-zip.outputs.zip_path }}
@@ -122,6 +166,14 @@ jobs:
           client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
           publish: true
+
+      - name: Report skipped upload
+        if: steps.check-status.outputs.skip_upload == 'true'
+        run: |
+          echo "## ⚠️ Chrome Web Store Upload Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The extension is currently **pending review** in the Chrome Web Store." >> $GITHUB_STEP_SUMMARY
+          echo "Upload was skipped to avoid failure. The new version will need to be uploaded manually after the review completes, or wait for the next release." >> $GITHUB_STEP_SUMMARY
 
   deploy-firefox:
     name: Deploy to Firefox Add-ons

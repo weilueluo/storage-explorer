@@ -1,5 +1,7 @@
 import type React from 'react';
-import { FaAngleRight } from 'react-icons/fa';
+import { Fragment } from 'react';
+import { ChevronRight } from 'lucide-react';
+import { cn } from '@extension/ui';
 import { toHumanDate, toHumanSize } from './storage';
 import { useStorageTree } from './context-storage';
 import { useSelectedTree } from './context-selected-node';
@@ -13,27 +15,28 @@ export const Footer: React.FC<FooterProps> = () => {
 
   return (
     <>
-      <div className="flex flex-row items-center align-middle text-sm truncate overflow-clip">
+      <nav className="flex flex-row items-center text-sm truncate overflow-clip gap-0.5">
         {selectedPath.map((node, i) => {
           return (
-            <>
-              {i > 0 && <FaAngleRight />}
-              <span
-                className="hover:cursor-pointer min-w-[10px] max-w-[200px] rounded-sm truncate grow hover:bg-slate-200"
+            <Fragment key={node.meta.id}>
+              {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />}
+              <button
+                className={cn(
+                  'min-w-[10px] max-w-[150px] rounded-sm truncate px-1',
+                  'hover:bg-accent transition-colors cursor-pointer',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                )}
                 onClick={() => setSelected(node)}
-                onKeyDown={() => setSelected(node)}
-                role="button"
-                tabIndex={0}
                 title={node.key}>
                 {node.key}
-              </span>
-            </>
+              </button>
+            </Fragment>
           );
         })}
-      </div>
-      <div className="flex flex-row gap-2 items-center italic">
-        <span className="text-nowrap text-sm">Timestamp: {stats?.timestamp && toHumanDate(stats?.timestamp)}</span>
-        <span className="text-nowrap text-sm">Size: {stats?.size && toHumanSize(stats?.size)}</span>
+      </nav>
+      <div className="flex flex-row gap-3 items-center text-muted-foreground shrink-0">
+        <span className="text-nowrap text-xs">{stats?.timestamp && toHumanDate(stats?.timestamp)}</span>
+        <span className="text-nowrap text-xs">{stats?.size && toHumanSize(stats?.size)}</span>
       </div>
     </>
   );

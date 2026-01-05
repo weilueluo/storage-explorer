@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(if [ -d \"C:\\\\Users\\\\luowe\\\\workspace\\\\storage-explorer\\\\dist\" ])",
+      "Bash(then ls -la \"C:\\\\Users\\\\luowe\\\\workspace\\\\storage-explorer\\\\dist\")",
+      "Bash(else echo \"dist directory not found\")",
+      "Bash(fi)",
+      "WebSearch",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(gh run:*)",
+      "Bash(pnpm update-version:*)",
+      "Bash(pnpm install:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:developer.chrome.com)",
+      "WebFetch(domain:chromewebstore.googleapis.com)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:coverage:*)",
+      "Bash(gh api:*)",
+      "Bash(pnpm why:*)",
+      "Bash(pnpm audit:*)",
+      "Bash(pnpm outdated:*)",
+      "Bash(pnpm update:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm ready:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

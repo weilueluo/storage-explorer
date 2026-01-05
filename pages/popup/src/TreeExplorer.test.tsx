@@ -78,7 +78,7 @@ describe('TreeExplorer', () => {
 
       renderWithProviders(<TreeExplorer />);
       // Loading component should be rendered
-      expect(screen.getByText('loading ...')).toBeInTheDocument();
+      expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
 
     it('renders tree when tree is loaded', () => {

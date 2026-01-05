@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import { render, type RenderOptions } from '@testing-library/react';
-import { IconContext } from 'react-icons';
+import { TooltipProvider } from '@extension/ui';
 import { StorageTreeProvider } from '../context-storage';
 import { SelectedTreeProvider } from '../context-selected-node';
 import { StorageTypeProvider } from '../storage-type';
@@ -20,7 +20,7 @@ export interface WrapperProps {
 // All providers wrapper - mirrors Popup.tsx structure
 export function AllProviders({ children }: WrapperProps): ReactElement {
   return (
-    <IconContext.Provider value={{ className: 'react-icons' }}>
+    <TooltipProvider delayDuration={0}>
       <ToastProvider>
         <StorageTreeProvider>
           <SelectedTreeProvider>
@@ -30,7 +30,7 @@ export function AllProviders({ children }: WrapperProps): ReactElement {
           </SelectedTreeProvider>
         </StorageTreeProvider>
       </ToastProvider>
-    </IconContext.Provider>
+    </TooltipProvider>
   );
 }
 

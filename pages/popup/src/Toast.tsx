@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { m } from './utils';
+import { Check } from 'lucide-react';
+import { cn } from '@extension/ui';
 
 export interface ToastProps {
   id: number;
@@ -38,10 +39,10 @@ export const Toast: React.FC<ToastProps> = ({ message, isExiting, index }) => {
 
   return (
     <div
-      className={m(
+      className={cn(
         'absolute bottom-0 right-0',
-        'bg-slate-800 text-white text-sm whitespace-nowrap',
-        'px-4 py-2 rounded-lg shadow-md',
+        'bg-primary text-primary-foreground text-sm whitespace-nowrap',
+        'px-4 py-2 rounded-lg shadow-lg border border-primary/20',
         'transition-all duration-200 ease-out',
       )}
       style={{
@@ -51,7 +52,10 @@ export const Toast: React.FC<ToastProps> = ({ message, isExiting, index }) => {
       }}
       role="status"
       aria-live="polite">
-      {message}
+      <div className="flex items-center gap-2">
+        <Check className="h-4 w-4" />
+        {message}
+      </div>
     </div>
   );
 };

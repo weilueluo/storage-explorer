@@ -5,17 +5,20 @@ import { TreeViewer } from './TreeViewer';
 import { SelectedTreeProvider, useSelectedTree } from './context-selected-node';
 import { ToastProvider } from './context-toast';
 import { ToastContainer } from './ToastContainer';
+import { TooltipProvider } from '@extension/ui';
 
 // Wrapper that allows us to set initial selected tree
 function createTestWrapper(selectedTree?: ReturnType<typeof createMockTreeNode>) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <ToastProvider>
-        <SelectedTreeProvider>
-          {selectedTree ? <SelectedTreeSetter tree={selectedTree}>{children}</SelectedTreeSetter> : children}
-        </SelectedTreeProvider>
-        <ToastContainer />
-      </ToastProvider>
+      <TooltipProvider delayDuration={0}>
+        <ToastProvider>
+          <SelectedTreeProvider>
+            {selectedTree ? <SelectedTreeSetter tree={selectedTree}>{children}</SelectedTreeSetter> : children}
+          </SelectedTreeProvider>
+          <ToastContainer />
+        </ToastProvider>
+      </TooltipProvider>
     );
   };
 }

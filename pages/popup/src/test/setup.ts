@@ -1,6 +1,15 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+// Mock ResizeObserver - needed for Radix UI ScrollArea and Tooltip
+class ResizeObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+
+global.ResizeObserver = ResizeObserverMock;
+
 // Create clipboard mock functions that can be accessed in tests
 export const clipboardWriteText = vi.fn().mockResolvedValue(undefined);
 export const clipboardReadText = vi.fn().mockResolvedValue('');

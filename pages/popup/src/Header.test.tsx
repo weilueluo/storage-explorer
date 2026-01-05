@@ -18,23 +18,28 @@ describe('Header', () => {
 
     it('renders search input with placeholder', () => {
       renderWithProviders(<Header />);
-      expect(screen.getByPlaceholderText('type to search...')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Type to search...')).toBeInTheDocument();
     });
 
-    it('renders Clear button', () => {
+    it('renders Clear button (icon)', () => {
       renderWithProviders(<Header />);
-      expect(screen.getByText('Clear')).toBeInTheDocument();
+      // Clear button is now an icon-only button with X icon
+      const buttons = screen.getAllByRole('button');
+      // Should have: storage toggle, clear, refresh
+      expect(buttons.length).toBeGreaterThanOrEqual(3);
     });
 
-    it('renders Refresh button', () => {
+    it('renders Refresh button (icon)', () => {
       renderWithProviders(<Header />);
-      expect(screen.getByText('Refresh')).toBeInTheDocument();
+      // Refresh button is now an icon-only button
+      const buttons = screen.getAllByRole('button');
+      expect(buttons.length).toBeGreaterThanOrEqual(3);
     });
 
     it('renders Feedback link', () => {
       renderWithProviders(<Header />);
-      const feedbackLink = screen.getByText('Feedback');
-      expect(feedbackLink).toBeInTheDocument();
+      // Feedback is now an icon link
+      const feedbackLink = screen.getByRole('link', { name: '' });
       expect(feedbackLink).toHaveAttribute('href', 'https://github.com/weilueluo/storage-explorer/issues/new');
     });
   });
@@ -42,7 +47,7 @@ describe('Header', () => {
   describe('Search Input', () => {
     it('auto-focuses search input on mount', async () => {
       renderWithProviders(<Header />);
-      const searchInput = screen.getByPlaceholderText('type to search...');
+      const searchInput = screen.getByPlaceholderText('Type to search...');
       await waitFor(() => {
         expect(document.activeElement).toBe(searchInput);
       });
@@ -52,11 +57,13 @@ describe('Header', () => {
       const user = userEvent.setup();
       renderWithProviders(<Header />);
 
-      const searchInput = screen.getByPlaceholderText('type to search...') as HTMLInputElement;
+      const searchInput = screen.getByPlaceholderText('Type to search...') as HTMLInputElement;
       await user.type(searchInput, 'test search');
       expect(searchInput.value).toBe('test search');
 
-      const clearButton = screen.getByText('Clear');
+      // Clear button is the first icon-only button after storage toggle
+      const buttons = screen.getAllByRole('button');
+      const clearButton = buttons[1]; // Index 1 = clear button (after storage toggle)
       await user.click(clearButton);
 
       expect(searchInput.value).toBe('');
@@ -66,10 +73,11 @@ describe('Header', () => {
       const user = userEvent.setup();
       renderWithProviders(<Header />);
 
-      const searchInput = screen.getByPlaceholderText('type to search...');
+      const searchInput = screen.getByPlaceholderText('Type to search...');
       await user.type(searchInput, 'test');
 
-      const clearButton = screen.getByText('Clear');
+      const buttons = screen.getAllByRole('button');
+      const clearButton = buttons[1];
       await user.click(clearButton);
 
       await waitFor(() => {

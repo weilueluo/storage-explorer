@@ -1,13 +1,9 @@
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { FaAngleRight } from 'react-icons/fa';
-import { FaBookmark, FaCaretRight, FaCheck, FaLink, FaRegBookmark, FaRegCircle } from 'react-icons/fa6';
-import { LuBrackets, LuFileText } from 'react-icons/lu';
-import { MdNumbers } from 'react-icons/md';
-import { VscJson } from 'react-icons/vsc';
+import { ChevronRight, Circle, Bookmark, Braces, Brackets, Hash, FileText, Check, Link } from 'lucide-react';
+import { cn } from '@extension/ui';
 import { useBookmarks } from './context-bookmarks';
 import type { TreeNode } from './storage';
-import { m } from './utils';
 
 export const Tree: React.FC<{
   k: string | undefined;
@@ -26,19 +22,6 @@ export const Tree: React.FC<{
   const onClick = () => {
     setIsOpen(!isOpen);
     onSelected(node);
-  };
-
-  const slideInStyle = {
-    minWidth: isTypeHovered ? '1rem' : '0rem', // Slide from left
-    width: isTypeHovered ? '1rem' : '0rem', // Slide from left
-    opacity: isTypeHovered ? 1 : 0, // Fade in
-    transition: 'width 0.2s ease-out, min-width 0.2s ease-out, opacity 0.2s ease-out', // Smooth transition
-  };
-
-  const rotationStyle = {
-    // transition: 'transform 0.2s ease-out',
-    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-    transition: 'transform 0.1s ease-out', // Smooth transition
   };
 
   // collapse/expand if instructed
@@ -61,14 +44,12 @@ export const Tree: React.FC<{
   }, [setIsBookmarked, checkIsBookmarked, node]);
 
   const onClickBookmark = useCallback(
-    (e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => {
+    (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       if (!isBookmarked) {
         const name = prompt(`Name for this bookmark`, node?.key);
         if (name) {
           setBookmark(name, node);
-        } else {
-          // name not given, user clicked outside of the box, probably regret setting bookmark
         }
       } else {
         unsetBookmark(node);
@@ -76,6 +57,25 @@ export const Tree: React.FC<{
     },
     [isBookmarked, node, setBookmark, unsetBookmark],
   );
+
+  const TypeIcon = ({ type, className }: { type: string; className?: string }) => {
+    switch (type) {
+      case 'object':
+        return <Braces className={cn('h-3.5 w-3.5', className)} />;
+      case 'array':
+        return <Brackets className={cn('h-3.5 w-3.5', className)} />;
+      case 'number':
+        return <Hash className={cn('h-3.5 w-3.5', className)} />;
+      case 'string':
+        return <FileText className={cn('h-3.5 w-3.5', className)} />;
+      case 'boolean':
+        return <Check className={cn('h-3.5 w-3.5', className)} />;
+      case 'url':
+        return <Link className={cn('h-3.5 w-3.5', className)} />;
+      default:
+        return null;
+    }
+  };
 
   if (!node?.meta.satisfy_search) {
     return null;
@@ -90,62 +90,93 @@ export const Tree: React.FC<{
       onBlur={() => setIsNodeHovered(false)}>
       {!isRoot && (
         <div
-          className={m(
-            'flex flex-row justify-between items-center w-full rounded-sm',
-            isNodeHovered && 'bg-slate-200',
-            isActive && 'bg-slate-300',
+          className={cn(
+            'flex flex-row justify-between items-center w-full rounded-sm px-1 py-0.5',
+            'transition-colors duration-150 cursor-pointer',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            isNodeHovered && 'bg-accent',
+            isActive && 'bg-accent/80',
           )}
           role="button"
           tabIndex={0}
           onClick={onClick}
-          onKeyDown={onClick}>
-          {(Object.keys(node.children).length > 0 && (
-            <FaAngleRight style={{ marginRight: '2px', ...rotationStyle }} />
-          )) || <FaRegCircle style={{ padding: '3px', marginRight: '2px' }} />}
-          <span className={m('inline-block truncate mr-1 hover:cursor-pointer grow')} title={k}>
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              onClick();
+            }
+          }}>
+          {Object.keys(node.children).length > 0 ? (
+            <ChevronRight className={cn('h-4 w-4 shrink-0 transition-transform duration-150', isOpen && 'rotate-90')} />
+          ) : (
+            <Circle className="h-2 w-2 mx-1 shrink-0 text-muted-foreground" />
+          )}
+          <span className={cn('min-w-0 truncate mr-1 grow text-sm')} title={k}>
             {k}
           </span>
-          <div className="flex flex-row items-center">
+          <div
+            className={cn(
+              'flex flex-row items-center gap-0.5 shrink-0',
+              'sticky right-2.5 pl-1',
+              isNodeHovered ? 'bg-accent' : isActive ? 'bg-accent/80' : 'bg-background',
+            )}>
             <div
-              className="flex flex-row items-center"
+              className="flex flex-row items-center text-muted-foreground"
               onMouseOver={() => setIsTypeHovered(true)}
               onFocus={() => setIsTypeHovered(true)}
               onMouseOut={() => setIsTypeHovered(false)}
               onBlur={() => setIsTypeHovered(false)}
               title={
-                (node.meta.raw_type !== node.meta.parsed_type &&
-                  `This node is stored as "${node.meta.raw_type}" but can be parsed into "${node.meta.parsed_type}"`) ||
-                `This node has type "${node.meta.raw_type}"`
+                node.meta.raw_type !== node.meta.parsed_type
+                  ? `Stored as "${node.meta.raw_type}", parsed as "${node.meta.parsed_type}"`
+                  : `Type: "${node.meta.raw_type}"`
               }>
-              {node.meta.raw_type === 'object' && <VscJson style={{ strokeWidth: 1, ...slideInStyle }} />}
-              {node.meta.raw_type === 'array' && <LuBrackets style={{ strokeWidth: 2.5, ...slideInStyle }} />}
-              {node.meta.raw_type === 'number' && <MdNumbers style={slideInStyle} />}
-              {node.meta.raw_type === 'string' && <LuFileText style={slideInStyle} />}
-              {node.meta.raw_type === 'boolean' && <FaCheck style={slideInStyle} />}
-              {node.meta.raw_type === 'url' && <FaLink style={slideInStyle} />}
-              {<FaCaretRight style={slideInStyle} />}
-              {node.meta.parsed_type === 'object' && <VscJson style={{ strokeWidth: 1 }} />}
-              {node.meta.parsed_type === 'array' && <LuBrackets style={{ strokeWidth: 2.5 }} />}
-              {node.meta.parsed_type === 'number' && <MdNumbers />}
-              {node.meta.parsed_type === 'string' && <LuFileText />}
-              {node.meta.parsed_type === 'boolean' && <FaCheck />}
-              {node.meta.parsed_type === 'url' && <FaLink />}
+              {node.meta.raw_type !== node.meta.parsed_type && (
+                <>
+                  <div
+                    className={cn(
+                      'flex items-center overflow-hidden transition-all duration-200',
+                      isTypeHovered ? 'w-4 opacity-100' : 'w-0 opacity-0',
+                    )}>
+                    <TypeIcon type={node.meta.raw_type} />
+                  </div>
+                  <ChevronRight
+                    className={cn(
+                      'h-3 w-3 transition-all duration-200',
+                      isTypeHovered ? 'opacity-100' : 'opacity-0 w-0',
+                    )}
+                  />
+                </>
+              )}
+              <TypeIcon type={node.meta.parsed_type} />
             </div>
-            <div
-              className={m('hover:cursor-pointer')}
-              role="button"
-              tabIndex={0}
+            <button
+              className={cn(
+                'p-0.5 rounded-sm hover:bg-accent transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              )}
               onClick={onClickBookmark}
-              onKeyDown={onClickBookmark}>
-              {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
-            </div>
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  onClickBookmark(e);
+                }
+              }}
+              title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}>
+              <Bookmark className={cn('h-3.5 w-3.5', isBookmarked && 'fill-current')} />
+            </button>
           </div>
         </div>
       )}
       {isOpen && (
-        <ul className={m(!isRoot && 'pl-4', 'flex flex-col w-full')}>
-          {Object.entries(node.children).map(([k, v]) => (
-            <Tree key={k} k={k} node={v} onSelected={onSelected} pathIds={pathIds} globalFolding={globalFolding} />
+        <ul className={cn(!isRoot && 'pl-4', 'flex flex-col w-full')}>
+          {Object.entries(node.children).map(([childKey, v]) => (
+            <Tree
+              key={childKey}
+              k={childKey}
+              node={v}
+              onSelected={onSelected}
+              pathIds={pathIds}
+              globalFolding={globalFolding}
+            />
           ))}
         </ul>
       )}

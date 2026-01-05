@@ -2,15 +2,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, userEvent, waitFor, createMockTreeNode, createNestedMockTree } from './test/test-utils';
 import { Tree } from './TreeNode';
 import { BookmarkProvider } from './context-bookmarks';
+import { TooltipProvider } from '@extension/ui';
 import type { ReactNode } from 'react';
-import { IconContext } from 'react-icons';
 
 // Simple wrapper for TreeNode tests
 function TestWrapper({ children }: { children: ReactNode }) {
   return (
-    <IconContext.Provider value={{ className: 'react-icons' }}>
+    <TooltipProvider delayDuration={0}>
       <BookmarkProvider>{children}</BookmarkProvider>
-    </IconContext.Provider>
+    </TooltipProvider>
   );
 }
 
@@ -200,10 +200,11 @@ describe('Tree (TreeNode)', () => {
 
       render(<Tree {...defaultProps} node={node} pathIds={pathIds} />, { wrapper: TestWrapper });
 
-      // First button is the node row, second is bookmark
-      const buttons = screen.getAllByRole('button');
-      const nodeRow = buttons[0];
-      expect(nodeRow).toHaveClass('bg-slate-300');
+      // Find the node by its text, then check its parent row has active styling
+      const nodeText = screen.getByText('test-key');
+      // The row is the parent div with role="button"
+      const nodeRow = nodeText.closest('[role="button"]');
+      expect(nodeRow).toHaveClass('bg-accent/80');
     });
   });
 

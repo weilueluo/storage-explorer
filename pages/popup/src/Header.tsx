@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useCallback, useEffect, useRef } from 'react';
-import { FaHdd, FaDatabase } from 'react-icons/fa';
+import { HardDrive, Database, X, RefreshCw, MessageSquare } from 'lucide-react';
+import { Button, Input, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui';
 import { STORAGE_TYPES } from './storage';
 import { useDebouncedSearchText } from './hooks';
 import { useStorageTree } from './context-storage';
@@ -46,44 +47,58 @@ export const Header: React.FC = () => {
   return (
     <div className="flex flex-row gap-2">
       <div className="flex flex-row gap-2 items-center">
-        <a
-          href="https://github.com/weilueluo/storage-explorer"
-          target="_blank"
-          className="hover:bg-slate-200 rounded-sm">
-          <img src={chrome.runtime.getURL(logo)} alt="logo" style={{ width: 24, height: 24 }} />
-        </a>
-        {/* <h2 className="font-bold text-xl">Storage Explorer</h2> */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <a
+              href="https://github.com/weilueluo/storage-explorer"
+              target="_blank"
+              className="hover:bg-accent rounded-sm p-0.5 transition-colors">
+              <img src={chrome.runtime.getURL(logo)} alt="logo" width={36} height={36} />
+            </a>
+          </TooltipTrigger>
+          <TooltipContent>View on GitHub</TooltipContent>
+        </Tooltip>
       </div>
-      <button
-        className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-2 items-center justify-center"
-        onClick={nextStorageType}>
-        {storageType === 'Local Storage' && <FaHdd />}
-        {storageType === 'Session Storage' && <FaDatabase />}
-        {storageType}
-      </button>
-      <input
-        className="grow rounded-md px-2 py-1 border border-1 h-[2rem] focus-visible:outline-none focus-visible:border-slate-400"
-        onChange={onChange}
-        ref={searchRef}
-        placeholder="type to search..."
-      />
-      <button
-        className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm"
-        onClick={clear}>
-        Clear
-      </button>
-      <button
-        className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm"
-        onClick={refresh}>
-        Refresh
-      </button>
-      <a
-        href="https://github.com/weilueluo/storage-explorer/issues/new"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="px-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex items-center">
-        Feedback
-      </a>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="outline" size="sm" onClick={nextStorageType} className="gap-2">
+            {storageType === 'Local Storage' && <HardDrive className="h-4 w-4" />}
+            {storageType === 'Session Storage' && <Database className="h-4 w-4" />}
+            {storageType}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Switch storage type</TooltipContent>
+      </Tooltip>
+      <Input className="grow h-8" onChange={onChange} ref={searchRef} placeholder="Type to search..." />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={clear} className="h-8 w-8">
+            <X className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Clear search</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={refresh} className="h-8 w-8">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Refresh storage</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" asChild className="h-8 w-8">
+            <a
+              href="https://github.com/weilueluo/storage-explorer/issues/new"
+              target="_blank"
+              rel="noopener noreferrer">
+              <MessageSquare className="h-4 w-4" />
+            </a>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Send feedback</TooltipContent>
+      </Tooltip>
     </div>
   );
 };

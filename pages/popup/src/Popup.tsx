@@ -1,10 +1,10 @@
 import { withErrorBoundary } from '@extension/shared';
+import { TooltipProvider, Button } from '@extension/ui';
 import '@src/Popup.css';
 import type { Dispatch, SetStateAction } from 'react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { IconContext } from 'react-icons';
-import { FaSync } from 'react-icons/fa';
+import { RefreshCw } from 'lucide-react';
 import { BookmarkProvider } from './context-bookmarks';
 import { SelectedTreeProvider } from './context-selected-node';
 import { StorageTreeProvider, useStorageTree } from './context-storage';
@@ -20,7 +20,7 @@ import { m } from './utils';
 
 const Popup: React.FC = () => {
   return (
-    <IconContext.Provider value={{ className: 'react-icons' }}>
+    <TooltipProvider delayDuration={300}>
       <ToastProvider>
         <StorageTreeProvider>
           <SelectedTreeProvider>
@@ -33,7 +33,7 @@ const Popup: React.FC = () => {
           </SelectedTreeProvider>
         </StorageTreeProvider>
       </ToastProvider>
-    </IconContext.Provider>
+    </TooltipProvider>
   );
 };
 
@@ -52,7 +52,7 @@ const PopupContent: React.FC = () => {
 
   return (
     <div id="all-container" className={`inter-tree-node flex flex-col gap-1 grow overflow-hidden`}>
-      <header id="header-container" className={m('text-gray-900 h-fit flex flex-col gap-2')}>
+      <header id="header-container" className={m('text-foreground h-fit flex flex-col gap-2')}>
         <Header />
       </header>
 
@@ -106,13 +106,11 @@ const ErrorComponent: React.FC<{
 
   return (
     <div className="flex flex-col gap-2 grow justify-center items-center">
-      <span className="flex items-center">{errorMessage}</span>
-      <button
-        className="px-4 py-2 rounded-md hover:cursor-pointer border border-1 hover:bg-slate-200 text-sm flex flex-row gap-1 items-center w-fit"
-        onClick={request}>
-        <FaSync />
+      <span className="flex items-center text-muted-foreground">{errorMessage}</span>
+      <Button variant="outline" onClick={request} className="gap-2">
+        <RefreshCw className="h-4 w-4" />
         Retry
-      </button>
+      </Button>
     </div>
   );
 };
