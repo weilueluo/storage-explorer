@@ -39,14 +39,28 @@ describe('TreeViewer', () => {
       expect(screen.getByText('Copy Key')).toBeInTheDocument();
     });
 
-    it('renders Copy button', () => {
+    it('hides Copy button when no node selected', () => {
       render(<TreeViewer />, { wrapper: createTestWrapper() });
-      expect(screen.getByText('Copy')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^Copy$/ })).not.toBeInTheDocument();
     });
 
-    it('renders Copy Raw button', () => {
+    it('hides Copy Raw button when no node selected', () => {
       render(<TreeViewer />, { wrapper: createTestWrapper() });
-      expect(screen.getByText('Copy Raw')).toBeInTheDocument();
+      expect(screen.queryByText('Copy Raw')).not.toBeInTheDocument();
+    });
+
+    it('displays key in header when node is selected', async () => {
+      const mockTree = createMockTreeNode({ key: 'my-test-key' });
+      render(<TreeViewer />, { wrapper: createTestWrapper(mockTree) });
+
+      await waitFor(() => {
+        expect(screen.getByText('my-test-key')).toBeInTheDocument();
+      });
+    });
+
+    it('shows No key selected placeholder when no node selected', () => {
+      render(<TreeViewer />, { wrapper: createTestWrapper() });
+      expect(screen.getByText('No key selected')).toBeInTheDocument();
     });
 
     it('shows placeholder when no node selected', () => {
