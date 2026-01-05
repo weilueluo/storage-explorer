@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@extension/ui';
 import { useBookmarks } from './context-bookmarks';
-import { useSelectedTree } from './context-selected-node';
 import { useSpotlight } from './context-spotlight';
 import type { TreeNode } from './storage';
 
