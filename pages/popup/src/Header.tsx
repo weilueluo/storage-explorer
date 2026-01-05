@@ -1,22 +1,15 @@
 import type React from 'react';
 import { useCallback, useEffect, useRef } from 'react';
-import { HardDrive, Database, X, RefreshCw, MessageSquare } from 'lucide-react';
+import { X, RefreshCw, MessageSquare } from 'lucide-react';
 import { Button, Input, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui';
-import { STORAGE_TYPES } from './storage';
 import { useDebouncedSearchText, registerClearSearch } from './hooks';
 import { useStorageTree } from './context-storage';
-import { useStorageType } from './storage-type';
+import { useStorageType, StorageTypeSelector } from './storage-type';
 
 export const Header: React.FC = () => {
   const logo = 'popup/icon48.png';
 
-  // rotate storage type
-  const { storageType, updateStorageType } = useStorageType();
-  const nextStorageType = useCallback(() => {
-    const nextIndex = (STORAGE_TYPES.indexOf(storageType) + 1) % STORAGE_TYPES.length;
-    console.log(`updateing to ${STORAGE_TYPES[nextIndex]}`);
-    updateStorageType(STORAGE_TYPES[nextIndex]);
-  }, [storageType, updateStorageType]);
+  const { storageType } = useStorageType();
 
   // search text
   const { searchText, onChange, clear: clearSearchState } = useDebouncedSearchText();
@@ -74,16 +67,7 @@ export const Header: React.FC = () => {
           <TooltipContent>View on GitHub</TooltipContent>
         </Tooltip>
       </div>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="sm" onClick={nextStorageType} className="gap-2">
-            {storageType === 'Local Storage' && <HardDrive className="h-4 w-4" />}
-            {storageType === 'Session Storage' && <Database className="h-4 w-4" />}
-            {storageType}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Switch storage type</TooltipContent>
-      </Tooltip>
+      <StorageTypeSelector />
       <Input className="grow h-8" onChange={onChange} ref={searchRef} placeholder="Type to search..." />
       <Tooltip>
         <TooltipTrigger asChild>

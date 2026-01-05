@@ -5,3 +5,5 @@ export * from './ui/tooltip';
 export * from './ui/scroll-area';
 export * from './ui/separator';
 export * from './ui/badge';
+export * from './ui/select';
+export * from './ui/dropdown-menu';
