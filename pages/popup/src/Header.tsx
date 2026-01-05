@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { HardDrive, Database, X, RefreshCw, MessageSquare } from 'lucide-react';
 import { Button, Input, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui';
 import { STORAGE_TYPES } from './storage';
-import { useDebouncedSearchText } from './hooks';
+import { useDebouncedSearchText, registerClearSearch } from './hooks';
 import { useStorageTree } from './context-storage';
 import { useStorageType } from './storage-type';
 
@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
   }, [storageType, updateStorageType]);
 
   // search text
-  const { searchText, onChange } = useDebouncedSearchText();
+  const { searchText, onChange, clear: clearSearchState } = useDebouncedSearchText();
 
   const { reload } = useStorageTree();
   const refresh = useCallback(() => {
@@ -36,13 +36,28 @@ export const Header: React.FC = () => {
     }
   }, []);
 
+  // Register clear callback for spotlight feature
+  // Returns true if search was active (had content to clear)
+  useEffect(() => {
+    const unregister = registerClearSearch(() => {
+      const hadSearch = searchRef.current?.value !== '';
+      if (searchRef.current) {
+        searchRef.current.value = '';
+      }
+      clearSearchState();
+      return hadSearch;
+    });
+    return unregister;
+  }, [clearSearchState]);
+
   // clear button
   const clear = useCallback(() => {
     if (searchRef && searchRef.current) {
       searchRef.current.value = '';
       searchRef.current.focus();
     }
-  }, []);
+    clearSearchState();
+  }, [clearSearchState]);
 
   return (
     <div className="flex flex-row gap-2">

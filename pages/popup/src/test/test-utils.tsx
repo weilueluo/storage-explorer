@@ -3,6 +3,7 @@ import { render, type RenderOptions } from '@testing-library/react';
 import { TooltipProvider } from '@extension/ui';
 import { StorageTreeProvider } from '../context-storage';
 import { SelectedTreeProvider } from '../context-selected-node';
+import { SpotlightProvider } from '../context-spotlight';
 import { StorageTypeProvider } from '../storage-type';
 import { BookmarkProvider } from '../context-bookmarks';
 import { ToastProvider } from '../context-toast';
@@ -24,9 +25,11 @@ export function AllProviders({ children }: WrapperProps): ReactElement {
       <ToastProvider>
         <StorageTreeProvider>
           <SelectedTreeProvider>
-            <StorageTypeProvider>
-              <BookmarkProvider>{children}</BookmarkProvider>
-            </StorageTypeProvider>
+            <SpotlightProvider>
+              <StorageTypeProvider>
+                <BookmarkProvider>{children}</BookmarkProvider>
+              </StorageTypeProvider>
+            </SpotlightProvider>
           </SelectedTreeProvider>
         </StorageTreeProvider>
       </ToastProvider>

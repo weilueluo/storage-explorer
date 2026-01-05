@@ -7,6 +7,7 @@ import { Tree } from './TreeNode';
 import { m } from './utils';
 import { useStorageTree } from './context-storage';
 import { useSelectedTree } from './context-selected-node';
+import { useSpotlight } from './context-spotlight';
 import { useBookmarks } from './context-bookmarks';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -19,6 +20,7 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = () => {
   // tree
   const { tree } = useStorageTree();
   const { selectedIds, setSelected } = useSelectedTree();
+  const { spotlightTrigger, resetSpotlight } = useSpotlight();
 
   // bookmark
   const { bookmarkedNodes, error: errorFromBookmarks } = useBookmarks();
@@ -44,7 +46,10 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setGlobalFolding(globalFolding < 0 ? globalFolding - 1 : -1)}
+                onClick={() => {
+                  resetSpotlight();
+                  setGlobalFolding(globalFolding < 0 ? globalFolding - 1 : -1);
+                }}
                 className="gap-1">
                 <ChevronsUp className="h-4 w-4" />
                 Collapse All
@@ -57,7 +62,10 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setGlobalFolding(globalFolding > 0 ? globalFolding + 1 : 1)}
+                onClick={() => {
+                  resetSpotlight();
+                  setGlobalFolding(globalFolding > 0 ? globalFolding + 1 : 1);
+                }}
                 className="gap-1">
                 <ChevronsDown className="h-4 w-4" />
                 Expand All
@@ -87,6 +95,7 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = () => {
                       onSelected={setSelected}
                       pathIds={selectedIds}
                       globalFolding={globalFolding}
+                      spotlightTrigger={spotlightTrigger}
                     />
                   );
                 })}
@@ -100,6 +109,7 @@ export const TreeExplorer: React.FC<TreeExplorerProps> = () => {
                 onSelected={setSelected}
                 pathIds={selectedIds}
                 globalFolding={globalFolding}
+                spotlightTrigger={spotlightTrigger}
               />
             )}
             {error === undefined && tree !== undefined && tree.meta.children_count === 0 && (

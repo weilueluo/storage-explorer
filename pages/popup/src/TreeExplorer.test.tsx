@@ -45,6 +45,9 @@ describe('TreeExplorer', () => {
       setSelected: vi.fn(),
       selectedPath: [],
       selectedIds: new Set(),
+      spotlightTrigger: 0,
+      spotlight: vi.fn(),
+      resetSpotlight: vi.fn(),
     });
 
     vi.mocked(useBookmarks).mockReturnValue({

@@ -1,7 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type MockInstance } from 'vitest';
 import { render, screen, userEvent, waitFor, createMockTreeNode, createNestedMockTree } from './test/test-utils';
 import { Tree } from './TreeNode';
 import { BookmarkProvider } from './context-bookmarks';
+import { SelectedTreeProvider } from './context-selected-node';
+import { SpotlightProvider } from './context-spotlight';
+import { StorageTreeProvider } from './context-storage';
 import { TooltipProvider } from '@extension/ui';
 import type { ReactNode } from 'react';
 
@@ -9,7 +12,13 @@ import type { ReactNode } from 'react';
 function TestWrapper({ children }: { children: ReactNode }) {
   return (
     <TooltipProvider delayDuration={0}>
-      <BookmarkProvider>{children}</BookmarkProvider>
+      <StorageTreeProvider>
+        <SelectedTreeProvider>
+          <SpotlightProvider>
+            <BookmarkProvider>{children}</BookmarkProvider>
+          </SpotlightProvider>
+        </SelectedTreeProvider>
+      </StorageTreeProvider>
     </TooltipProvider>
   );
 }
@@ -21,6 +30,7 @@ describe('Tree (TreeNode)', () => {
     onSelected: vi.fn(),
     pathIds: new Set<number>(),
     globalFolding: 0,
+    spotlightTrigger: 0,
   };
 
   describe('Rendering', () => {
@@ -209,32 +219,38 @@ describe('Tree (TreeNode)', () => {
   });
 
   describe('Bookmarking', () => {
+    let promptSpy: MockInstance;
+
+    beforeEach(() => {
+      promptSpy = vi.spyOn(window, 'prompt');
+    });
+
     it('prompts for name when bookmark icon clicked on non-bookmarked node', async () => {
       const user = userEvent.setup();
-      vi.mocked(window.prompt).mockReturnValue('My Bookmark');
+      promptSpy.mockReturnValue('My Bookmark');
 
       render(<Tree {...defaultProps} />, { wrapper: TestWrapper });
 
-      // Find and click bookmark button (second button in the row)
+      // Find and click bookmark button (third button: spotlight, bookmark)
       const buttons = screen.getAllByRole('button');
-      const bookmarkButton = buttons[1];
+      const bookmarkButton = buttons[buttons.length - 1]; // Last button is bookmark
       await user.click(bookmarkButton);
 
-      expect(window.prompt).toHaveBeenCalledWith('Name for this bookmark', 'test-key');
+      expect(promptSpy).toHaveBeenCalledWith('Name for this bookmark', 'test-key');
     });
 
     it('does not set bookmark when prompt is cancelled', async () => {
       const user = userEvent.setup();
-      vi.mocked(window.prompt).mockReturnValue(null);
+      promptSpy.mockReturnValue(null);
 
       render(<Tree {...defaultProps} />, { wrapper: TestWrapper });
 
       const buttons = screen.getAllByRole('button');
-      const bookmarkButton = buttons[1];
+      const bookmarkButton = buttons[buttons.length - 1]; // Last button is bookmark
       await user.click(bookmarkButton);
 
       // Should have been called but no error
-      expect(window.prompt).toHaveBeenCalled();
+      expect(promptSpy).toHaveBeenCalled();
     });
   });
 

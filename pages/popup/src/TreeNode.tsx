@@ -1,8 +1,21 @@
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronRight, Circle, Bookmark, Braces, Brackets, Hash, FileText, Check, Link } from 'lucide-react';
+import {
+  ChevronRight,
+  Circle,
+  Bookmark,
+  Braces,
+  Brackets,
+  Hash,
+  FileText,
+  Check,
+  Link,
+  Flashlight,
+} from 'lucide-react';
 import { cn } from '@extension/ui';
 import { useBookmarks } from './context-bookmarks';
+import { useSelectedTree } from './context-selected-node';
+import { useSpotlight } from './context-spotlight';
 import type { TreeNode } from './storage';
 
 export const Tree: React.FC<{
@@ -11,7 +24,8 @@ export const Tree: React.FC<{
   onSelected: (treeNode: TreeNode | undefined) => unknown;
   pathIds: Set<number>;
   globalFolding: number;
-}> = ({ k, node, onSelected, pathIds, globalFolding }) => {
+  spotlightTrigger: number;
+}> = ({ k, node, onSelected, pathIds, globalFolding, spotlightTrigger }) => {
   const isRoot = k === undefined;
   const isActive = node && pathIds.has(node.meta.id);
 
@@ -20,6 +34,7 @@ export const Tree: React.FC<{
   const [isNodeHovered, setIsNodeHovered] = useState<boolean>(false);
 
   const onClick = () => {
+    resetSpotlight();
     setIsOpen(!isOpen);
     onSelected(node);
   };
@@ -35,7 +50,19 @@ export const Tree: React.FC<{
     }
   }, [globalFolding, isRoot]);
 
+  // Spotlight expansion: expand only if this node is in selected path
+  useEffect(() => {
+    if (spotlightTrigger > 0 && !isRoot && node) {
+      if (pathIds.has(node.meta.id)) {
+        setIsOpen(true);
+      } else {
+        setIsOpen(false);
+      }
+    }
+  }, [spotlightTrigger, pathIds, node, isRoot]);
+
   const { setBookmark, unsetBookmark, isBookmarked: checkIsBookmarked } = useBookmarks();
+  const { spotlight, resetSpotlight } = useSpotlight();
 
   // set is bookmarked
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
@@ -56,6 +83,16 @@ export const Tree: React.FC<{
       }
     },
     [isBookmarked, node, setBookmark, unsetBookmark],
+  );
+
+  const onClickSpotlight = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      if (node) {
+        spotlight(node);
+      }
+    },
+    [node, spotlight],
   );
 
   const TypeIcon = ({ type, className }: { type: string; className?: string }) => {
@@ -93,7 +130,7 @@ export const Tree: React.FC<{
           className={cn(
             'flex flex-row justify-between items-center w-full rounded-sm px-1 py-0.5',
             'transition-colors duration-150 cursor-pointer',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'outline-none focus-visible:bg-accent',
             isNodeHovered && 'bg-accent',
             isActive && 'bg-accent/80',
           )}
@@ -152,7 +189,21 @@ export const Tree: React.FC<{
             <button
               className={cn(
                 'p-0.5 rounded-sm hover:bg-accent transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'outline-none focus-visible:bg-accent',
+              )}
+              onClick={onClickSpotlight}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  onClickSpotlight(e);
+                }
+              }}
+              title="Spotlight this node">
+              <Flashlight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              className={cn(
+                'p-0.5 rounded-sm hover:bg-accent transition-colors',
+                'outline-none focus-visible:bg-accent',
               )}
               onClick={onClickBookmark}
               onKeyDown={e => {
@@ -176,6 +227,7 @@ export const Tree: React.FC<{
               onSelected={onSelected}
               pathIds={pathIds}
               globalFolding={globalFolding}
+              spotlightTrigger={spotlightTrigger}
             />
           ))}
         </ul>

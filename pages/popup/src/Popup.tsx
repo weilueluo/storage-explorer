@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { BookmarkProvider } from './context-bookmarks';
 import { SelectedTreeProvider } from './context-selected-node';
+import { SpotlightProvider } from './context-spotlight';
 import { StorageTreeProvider, useStorageTree } from './context-storage';
 import { ToastProvider } from './context-toast';
 import { Footer } from './Footer';
@@ -24,12 +25,14 @@ const Popup: React.FC = () => {
       <ToastProvider>
         <StorageTreeProvider>
           <SelectedTreeProvider>
-            <StorageTypeProvider>
-              <BookmarkProvider>
-                <PopupContent />
-                <ToastContainer />
-              </BookmarkProvider>
-            </StorageTypeProvider>
+            <SpotlightProvider>
+              <StorageTypeProvider>
+                <BookmarkProvider>
+                  <PopupContent />
+                  <ToastContainer />
+                </BookmarkProvider>
+              </StorageTypeProvider>
+            </SpotlightProvider>
           </SelectedTreeProvider>
         </StorageTreeProvider>
       </ToastProvider>

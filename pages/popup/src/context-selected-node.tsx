@@ -41,7 +41,13 @@ export const SelectedTreeProvider: React.FC<React.PropsWithChildren> = ({ childr
   }, [selectedTree, setSelectedPath, setSelectedIds]);
 
   return (
-    <SelectedTreeContext.Provider value={{ selectedTree, setSelected, selectedPath, selectedIds }}>
+    <SelectedTreeContext.Provider
+      value={{
+        selectedTree,
+        setSelected,
+        selectedPath,
+        selectedIds,
+      }}>
       {children}
     </SelectedTreeContext.Provider>
   );
