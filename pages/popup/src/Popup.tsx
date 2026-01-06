@@ -21,7 +21,7 @@ import { m } from './utils';
 
 const Popup: React.FC = () => {
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={300} disableHoverableContent>
       <ToastProvider>
         <StorageTreeProvider>
           <SelectedTreeProvider>

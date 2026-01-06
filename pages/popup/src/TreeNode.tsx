@@ -12,7 +12,7 @@ import {
   Link,
   Flashlight,
 } from 'lucide-react';
-import { cn } from '@extension/ui';
+import { cn, Tooltip, TooltipTrigger, TooltipContent } from '@extension/ui';
 import { useBookmarks } from './context-bookmarks';
 import { useSpotlight } from './context-spotlight';
 import type { TreeNode } from './storage';
@@ -185,34 +185,42 @@ export const Tree: React.FC<{
               )}
               <TypeIcon type={node.meta.parsed_type} />
             </div>
-            <button
-              className={cn(
-                'p-0.5 rounded-sm hover:bg-accent transition-colors',
-                'outline-none focus-visible:bg-accent',
-              )}
-              onClick={onClickSpotlight}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  onClickSpotlight(e);
-                }
-              }}
-              title="Spotlight this node">
-              <Flashlight className="h-3.5 w-3.5" />
-            </button>
-            <button
-              className={cn(
-                'p-0.5 rounded-sm hover:bg-accent transition-colors',
-                'outline-none focus-visible:bg-accent',
-              )}
-              onClick={onClickBookmark}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  onClickBookmark(e);
-                }
-              }}
-              title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}>
-              <Bookmark className={cn('h-3.5 w-3.5', isBookmarked && 'fill-current')} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className={cn(
+                    'p-0.5 rounded-sm hover:bg-accent transition-colors',
+                    'outline-none focus-visible:bg-accent',
+                  )}
+                  onClick={onClickSpotlight}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      onClickSpotlight(e);
+                    }
+                  }}>
+                  <Flashlight className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Clear search and collapse all except this node</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  className={cn(
+                    'p-0.5 rounded-sm hover:bg-accent transition-colors',
+                    'outline-none focus-visible:bg-accent',
+                  )}
+                  onClick={onClickBookmark}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      onClickBookmark(e);
+                    }
+                  }}>
+                  <Bookmark className={cn('h-3.5 w-3.5', isBookmarked && 'fill-current')} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isBookmarked ? 'Remove bookmark' : 'Add bookmark'}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       )}
