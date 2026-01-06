@@ -72,35 +72,37 @@ export const Header: React.FC = () => {
       </div>
       <StorageTypeSelector />
       <Input className="grow h-8" onChange={onChange} ref={searchRef} placeholder="Type to search..." />
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={clear} className="h-8 w-8">
-            <X className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Clear search</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={refresh} className="h-8 w-8">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Refresh storage</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" asChild className="h-8 w-8">
-            <a
-              href="https://github.com/weilueluo/storage-explorer/issues/new"
-              target="_blank"
-              rel="noopener noreferrer">
-              <MessageSquare className="h-4 w-4" />
-            </a>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Send feedback</TooltipContent>
-      </Tooltip>
+      <div className="flex">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={clear} className="h-8 w-8">
+              <X className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Clear search</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={refresh} className="h-8 w-8">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Refresh storage</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" asChild className="h-8 w-8">
+              <a
+                href="https://github.com/weilueluo/storage-explorer/issues/new"
+                target="_blank"
+                rel="noopener noreferrer">
+                <MessageSquare className="h-4 w-4" />
+              </a>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Send feedback</TooltipContent>
+        </Tooltip>
+      </div>
     </div>
   );
 };
