@@ -5,7 +5,7 @@ import type { PropsWithChildren } from 'react';
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { varName } from './utils';
-import { HardDrive, Database, Cookie, ChevronDown, Check } from 'lucide-react';
+import { HardDrive, Database, Cookie, ChevronDown, Check, Layers } from 'lucide-react';
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@extension/ui';
 
 export interface UseStorageType {
@@ -56,6 +56,7 @@ const STORAGE_TYPE_ICONS: Record<StorageType, React.ReactNode> = {
   'Local Storage': <HardDrive className="h-4 w-4" />,
   'Session Storage': <Database className="h-4 w-4" />,
   Cookies: <Cookie className="h-4 w-4" />,
+  IndexedDB: <Layers className="h-4 w-4" />,
 };
 
 export const StorageTypeSelector: React.FC = () => {

@@ -1,9 +1,13 @@
-export type StorageType = 'Local Storage' | 'Session Storage' | 'Cookies';
-export const STORAGE_TYPES: StorageType[] = ['Local Storage', 'Session Storage', 'Cookies'];
+export type StorageType = 'Local Storage' | 'Session Storage' | 'Cookies' | 'IndexedDB';
+export const STORAGE_TYPES: StorageType[] = ['Local Storage', 'Session Storage', 'Cookies', 'IndexedDB'];
 
 export async function getStorageContent(storage: StorageType) {
   if (storage === 'Cookies') {
     return getCookiesContent();
+  }
+
+  if (storage === 'IndexedDB') {
+    return getIndexedDBContent();
   }
 
   if (chrome.scripting === undefined) {
@@ -64,6 +68,95 @@ async function getCookiesContent(): Promise<Record<string, object>> {
   }
 
   return cookiesObject;
+}
+
+async function getIndexedDBContent(): Promise<Record<string, Record<string, unknown[]>>> {
+  if (chrome.scripting === undefined) {
+    throw new Error(`scripting permission for this page is not granted`);
+  }
+
+  const tab = await getCurrentTab();
+  if (tab === undefined) {
+    throw new Error(`tab is undefined`);
+  }
+  if (tab.id === undefined) {
+    throw new Error(`tab id is undefined`);
+  }
+
+  const getIndexedDBFunc = async (): Promise<Record<string, Record<string, unknown[]>>> => {
+    const MAX_RECORDS_PER_STORE = 1000;
+    const result: Record<string, Record<string, unknown[]>> = {};
+
+    if (typeof indexedDB.databases !== 'function') {
+      throw new Error('indexedDB.databases() is not supported in this browser');
+    }
+
+    const databases = await indexedDB.databases();
+
+    if (databases.length === 0) {
+      return result;
+    }
+
+    for (const dbInfo of databases) {
+      if (!dbInfo.name) continue;
+
+      const dbName = dbInfo.name;
+      result[dbName] = {};
+
+      try {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open(dbName);
+          request.onerror = () => reject(new Error(`Failed to open database: ${dbName}`));
+          request.onsuccess = () => resolve(request.result);
+        });
+
+        const storeNames = Array.from(db.objectStoreNames);
+
+        for (const storeName of storeNames) {
+          try {
+            const records = await new Promise<unknown[]>((resolve, reject) => {
+              const transaction = db.transaction(storeName, 'readonly');
+              const store = transaction.objectStore(storeName);
+              const allRecords: unknown[] = [];
+              let count = 0;
+
+              const cursorRequest = store.openCursor();
+              cursorRequest.onerror = () => reject(new Error(`Failed to read store: ${storeName}`));
+              cursorRequest.onsuccess = event => {
+                const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result;
+                if (cursor && count < MAX_RECORDS_PER_STORE) {
+                  allRecords.push({
+                    _key: cursor.key,
+                    _value: cursor.value,
+                  });
+                  count++;
+                  cursor.continue();
+                } else {
+                  resolve(allRecords);
+                }
+              };
+            });
+            result[dbName][storeName] = records;
+          } catch (storeError) {
+            result[dbName][storeName] = [{ _error: String(storeError) }];
+          }
+        }
+
+        db.close();
+      } catch (dbError) {
+        result[dbName] = { _error: [{ message: String(dbError) }] };
+      }
+    }
+
+    return result;
+  };
+
+  const execution = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: getIndexedDBFunc,
+  });
+
+  return execution[0].result;
 }
 
 async function getCurrentTab() {
