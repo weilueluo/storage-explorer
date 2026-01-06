@@ -15,7 +15,14 @@ export const ToastContainer: React.FC = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {reversedToasts.map((toast, index) => (
-        <Toast key={toast.id} id={toast.id} message={toast.message} isExiting={toast.isExiting} index={index} />
+        <Toast
+          key={toast.id}
+          id={toast.id}
+          message={toast.message}
+          type={toast.type}
+          isExiting={toast.isExiting}
+          index={index}
+        />
       ))}
     </div>
   );

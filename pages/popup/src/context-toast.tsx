@@ -2,15 +2,18 @@ import type React from 'react';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useRef, useState } from 'react';
 
+export type ToastType = 'copied' | 'cleared' | 'refreshed' | 'error';
+
 export interface Toast {
   id: number;
   message: string;
+  type: ToastType;
   isExiting: boolean;
 }
 
 interface ToastContextType {
   toasts: Toast[];
-  showToast: (message: string) => void;
+  showToast: (message: string, type?: ToastType) => void;
   removeToast: (id: number) => void;
 }
 
@@ -35,9 +38,9 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const showToast = useCallback(
-    (message: string) => {
+    (message: string, type: ToastType = 'copied') => {
       const id = ++idCounter.current;
-      const newToast: Toast = { id, message, isExiting: false };
+      const newToast: Toast = { id, message, type, isExiting: false };
 
       setToasts(prev => {
         // Limit max toasts - remove oldest if at limit

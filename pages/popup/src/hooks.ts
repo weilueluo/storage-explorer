@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import { useCallback, useState } from 'react';
 import { useDebounce } from 'react-use';
-import { useToastContext } from './context-toast';
+import { useToastContext, type ToastType } from './context-toast';
 import { getCurrentOrigin } from './storage';
 
 export interface UseOrigin {
@@ -49,13 +49,15 @@ export function useDebouncedSearchText(): UseDebouncedSearchText {
 }
 
 export interface UseToast {
-  showToast: (msg: string) => void;
+  showToast: (msg: string, type?: ToastType) => void;
 }
 
 export function useToast(): UseToast {
   const { showToast } = useToastContext();
   return { showToast };
 }
+
+export type { ToastType };
 
 // Clear search callback registration for spotlight feature
 // Returns true if search was active (had content to clear)

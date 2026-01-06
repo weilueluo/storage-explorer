@@ -1,11 +1,13 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { cn } from '@extension/ui';
+import type { ToastType } from './context-toast';
 
 export interface ToastProps {
   id: number;
   message: string;
+  type: ToastType;
   isExiting: boolean;
   index: number;
 }
@@ -23,7 +25,7 @@ const getOpacity = (index: number, isVisible: boolean, isExiting: boolean): numb
   return Math.max(0.6, 1 - index * 0.15);
 };
 
-export const Toast: React.FC<ToastProps> = ({ message, isExiting, index }) => {
+export const Toast: React.FC<ToastProps> = ({ message, type, isExiting, index }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   // Trigger enter animation after mount
@@ -37,13 +39,29 @@ export const Toast: React.FC<ToastProps> = ({ message, isExiting, index }) => {
   const { x, y } = getStackOffset(index);
   const opacity = getOpacity(index, isVisible, isExiting);
 
+  const Icon = type === 'error' ? X : Check;
+
+  const getToastStyles = (toastType: ToastType) => {
+    switch (toastType) {
+      case 'copied':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'cleared':
+        return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'refreshed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'error':
+        return 'bg-red-100 text-red-800 border-red-200';
+    }
+  };
+
   return (
     <div
       className={cn(
         'absolute bottom-0 right-0',
-        'bg-primary text-primary-foreground text-sm whitespace-nowrap',
-        'px-4 py-2 rounded-lg shadow-lg border border-primary/20',
+        'text-sm whitespace-nowrap',
+        'px-4 py-2 rounded-lg shadow-lg border',
         'transition-all duration-200 ease-out',
+        getToastStyles(type),
       )}
       style={{
         transform: `translateX(${-x}px) translateY(${-y}px)`,
@@ -53,7 +71,7 @@ export const Toast: React.FC<ToastProps> = ({ message, isExiting, index }) => {
       role="status"
       aria-live="polite">
       <div className="flex items-center gap-2">
-        <Check className="h-4 w-4" />
+        <Icon className="h-4 w-4" />
         {message}
       </div>
     </div>

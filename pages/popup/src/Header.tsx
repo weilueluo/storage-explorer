@@ -2,7 +2,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 import { X, RefreshCw, MessageSquare } from 'lucide-react';
 import { Button, Input, Tooltip, TooltipContent, TooltipTrigger } from '@extension/ui';
-import { useDebouncedSearchText, registerClearSearch } from './hooks';
+import { useDebouncedSearchText, registerClearSearch, useToast } from './hooks';
 import { useStorageTree } from './context-storage';
 import { useStorageType, StorageTypeSelector } from './storage-type';
 
@@ -15,11 +15,13 @@ export const Header: React.FC = () => {
   const { searchText, onChange, clear: clearSearchState } = useDebouncedSearchText();
 
   const { reload } = useStorageTree();
-  const refresh = useCallback(() => {
-    reload(storageType, searchText, 10);
-  }, [reload, storageType, searchText]);
+  const { showToast } = useToast();
+  const refresh = useCallback(async () => {
+    await reload(storageType, searchText, 10);
+    showToast('Refreshed!', 'refreshed');
+  }, [reload, storageType, searchText, showToast]);
   // refresh on change search and storage type
-  useEffect(() => refresh(), [refresh, searchText, storageType]);
+  useEffect(() => void refresh(), [refresh, searchText, storageType]);
 
   // focus search on start
   const searchRef = useRef<HTMLInputElement>(null);
@@ -50,7 +52,8 @@ export const Header: React.FC = () => {
       searchRef.current.focus();
     }
     clearSearchState();
-  }, [clearSearchState]);
+    showToast('Cleared!', 'cleared');
+  }, [clearSearchState, showToast]);
 
   return (
     <div className="flex flex-row gap-2">

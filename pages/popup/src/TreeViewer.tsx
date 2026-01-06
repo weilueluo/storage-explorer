@@ -17,7 +17,7 @@ export const TreeViewer: React.FC<TreeViewerProps> = () => {
       if (text !== undefined) {
         navigator.clipboard
           .writeText(text)
-          .then(() => showToast('Copied!'))
+          .then(() => showToast('Copied!', 'copied'))
           .catch(err => setError(String(err)));
       }
     },
