@@ -85,7 +85,7 @@ const requestScriptingPermission = (origin: string) => {
   }
   setTimeout(() => window.close(), 200); // close the window because it blocks the request permission pop up
   chrome.permissions.request({
-    permissions: ['scripting'],
+    permissions: ['scripting', 'cookies'],
     origins: [origin],
   }); // chrome does not have second argument callback
 };

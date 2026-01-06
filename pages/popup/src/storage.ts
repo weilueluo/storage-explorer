@@ -1,7 +1,11 @@
-export type StorageType = 'Local Storage' | 'Session Storage';
-export const STORAGE_TYPES: StorageType[] = ['Local Storage', 'Session Storage'];
+export type StorageType = 'Local Storage' | 'Session Storage' | 'Cookies';
+export const STORAGE_TYPES: StorageType[] = ['Local Storage', 'Session Storage', 'Cookies'];
 
 export async function getStorageContent(storage: StorageType) {
+  if (storage === 'Cookies') {
+    return getCookiesContent();
+  }
+
   if (chrome.scripting === undefined) {
     throw new Error(`scripting permission for this page is not granted`);
   }
@@ -29,6 +33,37 @@ export async function getStorageContent(storage: StorageType) {
   });
 
   return execution[0].result;
+}
+
+async function getCookiesContent(): Promise<Record<string, object>> {
+  if (chrome.cookies === undefined) {
+    throw new Error(`cookies permission for this page is not granted`);
+  }
+
+  const tab = await getCurrentTab();
+  if (tab === undefined) {
+    throw new Error(`tab is undefined`);
+  }
+  if (tab.url === undefined) {
+    throw new Error(`tab.url is undefined`);
+  }
+
+  const cookies = await chrome.cookies.getAll({ url: tab.url });
+
+  const cookiesObject: Record<string, object> = {};
+  for (const cookie of cookies) {
+    cookiesObject[cookie.name] = {
+      value: cookie.value,
+      domain: cookie.domain,
+      path: cookie.path,
+      secure: cookie.secure,
+      httpOnly: cookie.httpOnly,
+      sameSite: cookie.sameSite,
+      expirationDate: cookie.expirationDate ? new Date(cookie.expirationDate * 1000).toISOString() : 'Session',
+    };
+  }
+
+  return cookiesObject;
 }
 
 async function getCurrentTab() {

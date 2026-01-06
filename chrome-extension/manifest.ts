@@ -31,7 +31,7 @@ const manifest = {
   description: 'Easily view, copy or search local storage content from any webpage by clicking on the extension icon.',
   optional_host_permissions: ['https://*/*', 'http://*/*'],
   permissions: ['storage', 'tabs', 'activeTab'],
-  optional_permissions: ['scripting'],
+  optional_permissions: ['scripting', 'cookies'],
   action: {
     default_popup: 'popup/index.html',
     default_icon: 'icon32.png',
